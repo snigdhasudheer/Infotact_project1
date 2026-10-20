@@ -83,3 +83,71 @@ A causal dynamic-pricing experiment needs an explicit treatment definition, outc
 - [x] Final Day 2 review completed
 
 Status: Day 2 core analysis, dataset validation, upload-format tests, and documentation review completed.
+
+## 8. Comparison of Both Selected Datasets
+
+### Dataset 1: Online Retail
+
+- **File:** `data/raw/Online Retail.xlsx`
+- **Original dimensions:** 541,909 rows × 8 columns
+- **Columns:** InvoiceNo, StockCode, Description, Quantity, InvoiceDate, UnitPrice, CustomerID, Country
+- **Purpose:** Historical transaction, price, quantity, and revenue analysis.
+- **Schema validation:** Passed.
+- **Note:** The latest comparison inspected only the first 1,000 rows for missing values.
+
+### Dataset 2: Hillstrom
+
+- **File:** `data/raw/hillstorm_no_indices.csv`
+- **Dimensions:** 64,000 rows × 12 columns
+- **Columns:** recency, history_segment, history, mens, womens, zip_code, newbie, channel, segment, visit, conversion, spend
+- **Missing values:** 0
+- **Duplicate rows flagged:** 6,562
+- **Purpose:** Marketing-treatment and customer conversion/spending analysis.
+
+### Schema Comparison
+
+- **Common column names:** None.
+- Online Retail contains transaction, product, price, quantity, date, and country fields.
+- Hillstrom contains customer history, marketing segment, visit, conversion, and spending fields.
+- The datasets should not be directly merged because no common column names or verified join key have been established.
+
+### Final Dataset Decision
+
+Use Online Retail for historical price and quantity exploration. Use Hillstrom for marketing-treatment and conversion analysis. Hillstrom's marketing treatment is not a price treatment, so it cannot by itself identify the causal effect of changing prices.
+
+Before removing Hillstrom duplicate rows, investigate whether they are truly duplicate records or expected repeated customer profiles. Do not remove them automatically.
+
+**Status:** Both dataset files are present and their schemas have been inspected. Online Retail schema validation and Hillstrom basic inspection are complete. Duplicate investigation and final integrated experiment-design review remain pending.
+
+### Dataset 1: Online Retail
+
+- File: `data/raw/Online Retail.xlsx`
+- Original dimensions: 541,909 rows x 8 columns
+- Columns: InvoiceNo, StockCode, Description, Quantity, InvoiceDate, UnitPrice, CustomerID, Country
+- Purpose: Historical transaction, unit-price, quantity, and revenue analysis.
+- Schema validation: Passed.
+- Note: The latest comparison inspected only the first 1,000 rows for missing values; this is not a full-file missing-value check.
+
+### Dataset 2: Hillstrom
+
+- File: `data/raw/hillstorm_no_indices.csv`
+- Dimensions: 64,000 rows x 12 columns
+- Columns: recency, history_segment, history, mens, womens, zip_code, newbie, channel, segment, visit, conversion, spend
+- Missing values: 0
+- Duplicate rows flagged: 6,562
+- Purpose: Marketing-treatment and customer conversion/spending analysis.
+
+### Schema Comparison
+
+- Common column names: None.
+- Online Retail contains transaction, product, price, quantity, date, and country fields.
+- Hillstrom contains customer history, marketing segment, visit, conversion, and spending fields.
+- The datasets should not be directly merged because no common column names or verified join key have been established.
+
+### Final Dataset Decision
+
+Use Online Retail for historical price and quantity exploration. Use Hillstrom for marketing-treatment and conversion analysis. Hillstrom's marketing treatment is not a price treatment, so it cannot by itself identify the causal effect of changing prices.
+
+Before removing Hillstrom duplicate rows, investigate whether these are truly duplicate records or expected repeated customer profiles. Do not remove them automatically.
+
+Status: Both dataset files are present and their schemas have been inspected. Online Retail schema validation and Hillstrom basic inspection are complete. Duplicate investigation and final integrated experiment-design review remain separate follow-up tasks.

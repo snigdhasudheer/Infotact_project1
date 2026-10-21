@@ -62,3 +62,5 @@ def validate_upload(file_path):
     print(preview.to_string(index=False))
 
     return df
+if __name__ == "__main__":
+    validate_upload("data/raw/Online Retail.xlsx")

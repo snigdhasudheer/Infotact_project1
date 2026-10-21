@@ -1,8 +1,30 @@
-# EconoCausal
+ï»¿# EconoCausal
 
 **Dynamic Pricing via Double Machine Learning**
 
-EconoCausal is a project exploring causal inference for pricing and marketing campaign optimization.
+EconoCausal explores causal inference for pricing and marketing campaign optimization.
+
+## Current Progress
+
+### Day 1 - Repository and Requirements
+- Git repository and project structure established.
+- React + Vite frontend scaffold created.
+- Dashboard wireframe and initial GitHub activity integration added.
+
+### Day 2 - Dataset Decision and Validation
+- Online Retail and Hillstrom datasets compared.
+- Dataset schemas and limitations documented in `docs/day2-dataset-decision.md`.
+- Online Retail and Hillstrom exploratory analysis notebooks added.
+- Excel upload validation implemented in `validate_upload.py`.
+- Automated upload validation tests added in `test_validate_upload.py`.
+- All 5 upload validation tests pass.
+
+## Dataset Notes
+
+- Online Retail contains historical transaction data for descriptive analysis.
+- Hillstrom contains email marketing treatment data, not a direct pricing experiment.
+- Neither dataset alone establishes the causal effect of changing prices.
+- Final causal analysis requires an appropriate treatment, outcome, and validated methodology.
 
 ## Planned Features
 
@@ -14,18 +36,24 @@ EconoCausal is a project exploring causal inference for pricing and marketing ca
 - FastAPI backend
 - React frontend with Plotly visualizations
 
-## Current Status
-
-- React + Vite frontend scaffold created
-- Dashboard wireframe in progress
-- Dataset selection pending
-- Backend and causal analysis pending
-
 ## Project Structure
 
-- rontend/ — React dashboard
-- ackend/ — Planned FastAPI backend
+- `data/` - Project datasets
+- `docs/` - Dataset decision and documentation
+- `frontend/` - React + Vite dashboard
+- `01_dataset_overview.ipynb` - Initial dataset overview
+- `02_online_retail_overview.ipynb` - Online Retail analysis
+- `03_hillstrom_quality_analysis.ipynb` - Hillstrom quality analysis
+- `validate_upload.py` - Excel upload validation
+- `test_validate_upload.py` - Automated validation tests
+
+## Pending Work
+
+- Complete and verify the dashboard EDA presentation.
+- Implement the FastAPI backend.
+- Develop and validate the causal estimation pipeline.
+- Implement budget allocation after causal estimates are validated.
 
 ## Important Note
 
-Results will be reported only after the relevant data and models are implemented and evaluated. Simulated data, if used, will be clearly labeled.
+No causal effects or budget optimization results will be claimed until the relevant models are implemented and evaluated. Simulated data, if used, will be clearly labeled.

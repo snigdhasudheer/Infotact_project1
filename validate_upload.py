@@ -14,40 +14,53 @@ EXPECTED_COLUMNS = {
 }
 
 
-def validate_upload(file_path):
-    path = Path(file_path)
-
-    # Test 1: File must exist
+def validate_file_exists(path: Path):
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {path}")
 
-    # Test 2: Only Excel .xlsx is currently supported
+
+def validate_file_format(path: Path):
     if path.suffix.lower() != ".xlsx":
         raise ValueError("Unsupported format. Please upload an .xlsx file.")
 
-    # Test 3: Read and validate schema
-    df = pd.read_excel(path, engine="openpyxl")
 
+def validate_schema(df: pd.DataFrame):
     missing = EXPECTED_COLUMNS - set(df.columns)
     unexpected = set(df.columns) - EXPECTED_COLUMNS
 
     if missing:
-        raise ValueError(f"Missing required columns: {sorted(missing)}")
+        raise ValueError(
+            f"Missing required columns: {sorted(missing)}"
+        )
 
     if unexpected:
-        raise ValueError(f"Unexpected columns: {sorted(unexpected)}")
+        raise ValueError(
+            f"Unexpected columns: {sorted(unexpected)}"
+        )
 
-    # Test 4: Create sample preview
-    preview = df.head(5)
+
+def create_preview(df: pd.DataFrame, rows: int = 5):
+    return df.head(rows)
+
+
+def validate_upload(file_path):
+    path = Path(file_path)
+
+    validate_file_exists(path)
+    validate_file_format(path)
+
+    df = pd.read_excel(path, engine="openpyxl")
+
+    validate_schema(df)
+
+    preview = create_preview(df)
 
     print("Validation passed!")
-    print("Rows:", len(df))
-    print("Columns:", len(df.columns))
+    print(f"Rows: {len(df)}")
+    print(f"Columns: {len(df.columns)}")
     print("\nSample preview:")
     print(preview.to_string(index=False))
 
     return df
-
-
 if __name__ == "__main__":
     validate_upload("data/raw/Online Retail.xlsx")

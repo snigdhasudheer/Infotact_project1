@@ -1,4 +1,5 @@
-
+import UploadPanel from "./UploadPanel";
+import EDACharts from "./EDACharts";
 import { useEffect, useState } from "react";
 import "./App.css";
 
@@ -8,9 +9,9 @@ const REPO_URL =
 const API_BASE =
   "https://api.github.com/repos/snigdhasudheer/Infotact_project1";
 
-const COMMITS_API = `${API_BASE}/commits?sha=main&per_page=8`;
-const OPEN_PRS_API = `${API_BASE}/pulls?state=open&per_page=10`;
-const CLOSED_PRS_API = `${API_BASE}/pulls?state=closed&per_page=30`;
+const COMMITS_API = `${API_BASE}/commits?sha=main&per_page=100`;
+const OPEN_PRS_API = `${API_BASE}/pulls?state=open&per_page=100`;
+const CLOSED_PRS_API = `${API_BASE}/pulls?state=closed&per_page=100`;
 
 function App() {
   const [commits, setCommits] = useState([]);
@@ -261,7 +262,7 @@ function App() {
           </div>
         </section>
 
-        {/* New section: GitHub Pull Requests */}
+        {/* GitHub Pull Requests */}
         <section className="panel" style={{ marginBottom: "22px" }}>
           <div className="panel-heading">
             <div>
@@ -291,7 +292,8 @@ function App() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(250px, 1fr))",
                 gap: "24px",
                 marginTop: "20px",
               }}
@@ -317,10 +319,14 @@ function App() {
                             #{pr.number} {pr.title}
                           </a>
 
-                          <p>By {pr.user?.login || "Unknown author"}</p>
+                          <p>
+                            By {pr.user?.login || "Unknown author"}
+                          </p>
                           <p>Updated {formatDate(pr.updated_at)}</p>
 
-                          <span className="task-status review">Open</span>
+                          <span className="task-status review">
+                            Open
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -364,7 +370,9 @@ function App() {
 
                           <p>Merged {formatDate(pr.merged_at)}</p>
 
-                          <span className="task-status done">Merged</span>
+                          <span className="task-status done">
+                            Merged
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -384,6 +392,13 @@ function App() {
           )}
         </section>
 
+        {/* Day 4: Descriptive EDA Charts */}
+        <section className="panel">
+          <UploadPanel />
+          <EDACharts />
+        </section>
+
+        {/* Planned causal analysis; not a claim of measured effects */}
         <section className="panel">
           <h2>Treatment Effect Analysis</h2>
           <p>
@@ -395,6 +410,7 @@ function App() {
           </div>
         </section>
 
+        {/* Planned budget optimization */}
         <section className="panel">
           <h2>Budget Allocation</h2>
           <p>

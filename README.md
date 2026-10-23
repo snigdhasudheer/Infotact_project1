@@ -57,3 +57,29 @@ EconoCausal explores causal inference for pricing and marketing campaign optimiz
 ## Important Note
 
 No causal effects or budget optimization results will be claimed until the relevant models are implemented and evaluated. Simulated data, if used, will be clearly labeled.
+
+## Recent Progress
+
+### Day 3 - Data Validation
+- Excel upload validation and error handling added.
+- Validation covers missing files, missing required columns, unexpected columns, unsupported formats, and valid Excel input.
+- All 5 upload validation tests passed.
+
+### Day 4 - Upload Integration and Initial EDA
+- Added a FastAPI application with an Excel upload endpoint and health check.
+- Added a React upload panel with validation feedback and data preview.
+- Added an initial EDA chart component and Plotly dependencies.
+- Product-month CSV integration and dataset-specific EDA remain pending.
+
+### Day 5 - Methodology and Assumptions (Section B)
+- Preparing methodology and assumptions documentation in `docs/day5-methodology-assumptions.md`.
+- Documenting methodology prerequisites, dataset limitations, and the distinction between observed and simulated results.
+- Section A variable definitions and the causal diagram are dependencies for final alignment.
+- Causal estimates and budget optimization results are not yet claimed.
+
+## Current Implementation Status
+- Excel upload validation: implemented and tested.
+- Initial upload interface: added.
+- Initial EDA component: added; product-month CSV integration is pending.
+- Section B methodology documentation: drafted; review remains pending.
+- Causal estimation and budget optimization: pending.

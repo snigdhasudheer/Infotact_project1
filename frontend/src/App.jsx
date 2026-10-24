@@ -1,3 +1,4 @@
+
 import UploadPanel from "./UploadPanel";
 import EDACharts from "./EDACharts";
 import { useEffect, useState } from "react";
@@ -13,6 +14,15 @@ const COMMITS_API = `${API_BASE}/commits?sha=main&per_page=100`;
 const OPEN_PRS_API = `${API_BASE}/pulls?state=open&per_page=100`;
 const CLOSED_PRS_API = `${API_BASE}/pulls?state=closed&per_page=100`;
 
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard" },
+  { id: "dataset-eda", label: "Dataset & EDA" },
+  { id: "causal-analysis", label: "Causal Analysis" },
+  { id: "recommendations", label: "Recommendations" },
+  { id: "budget-optimization", label: "Budget Optimization" },
+  { id: "team-activity", label: "Team Activity" },
+];
+
 function App() {
   const [commits, setCommits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +32,24 @@ function App() {
   const [mergedPRs, setMergedPRs] = useState([]);
   const [prLoading, setPrLoading] = useState(true);
   const [prError, setPrError] = useState("");
+
+  const [activeSection, setActiveSection] = useState("dashboard");
+
+  function navigateToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+
+    if (!section) {
+      console.error(`Navigation target not found: ${sectionId}`);
+      return;
+    }
+
+    setActiveSection(sectionId);
+
+    section.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   async function fetchCommits() {
     setLoading(true);
@@ -104,12 +132,27 @@ function App() {
     <div className="dashboard">
       <aside className="sidebar">
         <h2>EconoCausal</h2>
-        <p className="active">Dashboard</p>
-        <p>Dataset &amp; EDA</p>
-        <p>Causal Analysis</p>
-        <p>Recommendations</p>
-        <p>Budget Optimization</p>
-        <p>Team Activity</p>
+
+        <nav
+          className="sidebar-nav"
+          aria-label="Dashboard navigation"
+        >
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`sidebar-link ${
+                activeSection === item.id ? "active" : ""
+              }`}
+              onClick={() => navigateToSection(item.id)}
+              aria-current={
+                activeSection === item.id ? "page" : undefined
+              }
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
         <div className="sidebar-footer">
           <span className="status-dot" />
@@ -134,7 +177,8 @@ function App() {
           </a>
         </header>
 
-        <section className="stats-grid">
+        {/* Dashboard overview */}
+        <section className="stats-grid" id="dashboard">
           <div className="stat-card">
             <p>Dataset Overview</p>
             <h2>In Progress</h2>
@@ -160,7 +204,8 @@ function App() {
           </div>
         </section>
 
-        <section className="content-grid">
+        {/* Project roadmap and GitHub activity */}
+        <section className="content-grid" id="team-activity">
           <div className="panel">
             <h2>Project Roadmap</h2>
 
@@ -201,6 +246,7 @@ function App() {
               </div>
 
               <button
+                type="button"
                 className="refresh-button"
                 onClick={fetchCommits}
                 disabled={loading}
@@ -214,7 +260,9 @@ function App() {
             {error && (
               <div className="error-message">
                 <p>{error}</p>
-                <button onClick={fetchCommits}>Try again</button>
+                <button type="button" onClick={fetchCommits}>
+                  Try again
+                </button>
               </div>
             )}
 
@@ -222,7 +270,7 @@ function App() {
               <p>No commits found on main.</p>
             )}
 
-            {!loading && !error && (
+            {!loading && !error && commits.length > 0 && (
               <div className="commit-list">
                 {commits.map((item) => (
                   <div className="commit-item" key={item.sha}>
@@ -263,7 +311,10 @@ function App() {
         </section>
 
         {/* GitHub Pull Requests */}
-        <section className="panel" style={{ marginBottom: "22px" }}>
+        <section
+          className="panel"
+          style={{ marginBottom: "22px" }}
+        >
           <div className="panel-heading">
             <div>
               <h2>GitHub Pull Requests</h2>
@@ -271,6 +322,7 @@ function App() {
             </div>
 
             <button
+              type="button"
               className="refresh-button"
               onClick={fetchPullRequests}
               disabled={prLoading}
@@ -282,7 +334,9 @@ function App() {
           {prError && (
             <div className="error-message">
               <p>{prError}</p>
-              <button onClick={fetchPullRequests}>Try again</button>
+              <button type="button" onClick={fetchPullRequests}>
+                Try again
+              </button>
             </div>
           )}
 
@@ -322,6 +376,7 @@ function App() {
                           <p>
                             By {pr.user?.login || "Unknown author"}
                           </p>
+
                           <p>Updated {formatDate(pr.updated_at)}</p>
 
                           <span className="task-status review">
@@ -392,31 +447,49 @@ function App() {
           )}
         </section>
 
-        {/* Day 4: Descriptive EDA Charts */}
-        <section className="panel">
+        {/* Dataset and Exploratory Data Analysis */}
+        <section className="panel" id="dataset-eda">
           <UploadPanel />
           <EDACharts />
         </section>
 
-        {/* Planned causal analysis; not a claim of measured effects */}
-        <section className="panel">
+        {/* Planned causal analysis */}
+        <section className="panel" id="causal-analysis">
           <h2>Treatment Effect Analysis</h2>
+
           <p>
             Planned: estimate the effect of a pricing or marketing
             intervention using an appropriate causal method.
           </p>
+
           <div className="chart-placeholder">
             Treatment effect visualization will appear here
           </div>
         </section>
 
+        {/* Planned recommendations */}
+        <section className="panel" id="recommendations">
+          <h2>Recommendations</h2>
+
+          <p>
+            Recommendations will be developed after validating the
+            dataset and causal analysis results.
+          </p>
+
+          <div className="chart-placeholder">
+            Recommendations will appear here after analysis
+          </div>
+        </section>
+
         {/* Planned budget optimization */}
-        <section className="panel">
+        <section className="panel" id="budget-optimization">
           <h2>Budget Allocation</h2>
+
           <p>
             Planned: compare budget allocation strategies after
             validating the causal estimates.
           </p>
+
           <div className="chart-placeholder">
             Budget allocation visualization will appear here
           </div>

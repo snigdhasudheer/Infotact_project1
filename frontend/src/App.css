@@ -380,4 +380,71 @@ a {
   }
 }
 
+/* =========================================
+   Day 6 - Section B: Sidebar Navigation
+   ========================================= */
 
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.sidebar-link {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #c6d0e0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: #263754;
+  color: #ffffff;
+}
+
+.sidebar-link.active {
+  background: #2c4166;
+  color: #ffffff;
+  border-color: #40577c;
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid #93b4ff;
+  outline-offset: 2px;
+}
+
+/* Keep destination sections visible after scrolling */
+#dashboard,
+#dataset-eda,
+#causal-analysis,
+#recommendations,
+#budget-optimization,
+#team-activity {
+  scroll-margin-top: 24px;
+}
+
+/* Mobile navigation layout */
+@media (max-width: 700px) {
+  .sidebar-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .sidebar-link {
+    overflow-wrap: anywhere;
+  }
+}

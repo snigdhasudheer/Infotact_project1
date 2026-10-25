@@ -1,38 +1,42 @@
-# Product-month CSV export
+# Day 6: Product-Month CSV Validation
 
-This small, reusable Python utility exports the product-month summary needed by the EconoCausal React dashboard. It runs locally and does not require Google Colab.
+## Purpose
+This utility validates `product_month_summary.csv` before it is used by the React dashboard. It is separate from the frontend navigation work and does not require Google Colab.
+
+## Checks performed
+- Confirms the six required columns and rejects unexpected columns.
+- Detects empty files, blank product codes, and invalid month values (expected `YYYY-MM`).
+- Checks that price, quantity, revenue, and transaction count are numeric and non-negative.
+- Checks that transaction counts are whole numbers greater than zero.
+- Detects duplicate `StockCode` + `Month` keys.
+- Prints a clear pass/fail result and returns a non-zero exit code when validation fails.
 
 ## Requirements
+Python 3.9+ and pandas.
+
+Install dependency:
 
 ```bash
-pip install pandas openpyxl
+python -m pip install pandas
 ```
 
-## Run
-
-Place the original `Online Retail.xlsx` file on your computer, then run:
+## Run the validator
+Place `product_month_summary.csv` beside the script or provide its path:
 
 ```bash
-python export_product_month.py "Online Retail.xlsx" --output product_month_summary.csv
+python validate_product_month_csv.py product_month_summary.csv
 ```
-
-The output has these columns, in this order:
-
-1. `StockCode`
-2. `Month`
-3. `Average_Price`
-4. `Total_Quantity`
-5. `Total_Revenue`
-6. `Transaction_Count`
-
-The script removes exact duplicate rows, excludes rows without a stock code, invoice date, or invoice number, and excludes invalid/non-positive quantities and prices. It groups valid transactions by product and calendar month. This is descriptive analysis and does not establish a causal effect of price on demand.
 
 ## Run tests
-
-With pandas installed, run:
+From this folder:
 
 ```bash
-python -m unittest -v test_export_product_month.py
+python -m unittest -v
 ```
 
-The tests use a small synthetic dataset and do not require the real retail workbook.
+Tests use small synthetic fixtures; they do not contain or claim to reproduce the real retail dataset.
+
+## Expected CSV schema
+`StockCode, Month, Average_Price, Total_Quantity, Total_Revenue, Transaction_Count`
+
+Note: the validator checks data quality only. It does not estimate causal price effects or alter the source data.

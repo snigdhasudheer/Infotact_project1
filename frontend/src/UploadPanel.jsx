@@ -1,17 +1,42 @@
+
 import { useState } from "react";
 import "./UploadPanel.css";
 
 const API_URL = "http://127.0.0.1:8000/api/upload";
+const EXPORT_API_URL = "http://127.0.0.1:8000/api/export-product-month";
+
+function getErrorMessage(data, fallback) {
+  const detail = data?.detail;
+
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item.msg).join(", ") || fallback;
+  }
+
+  return detail || fallback;
+}
 
 function UploadPanel() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [exportError, setExportError] = useState("");
+  const [exportSuccess, setExportSuccess] = useState("");
+
+  function handleFileChange(event) {
+    setFile(event.target.files?.[0] || null);
+    setError("");
+    setExportError("");
+    setExportSuccess("");
+    setResult(null);
+  }
 
   async function handleUpload(event) {
     event.preventDefault();
     setError("");
+    setExportError("");
+    setExportSuccess("");
     setResult(null);
 
     if (!file) {
@@ -38,11 +63,7 @@ function UploadPanel() {
       const data = await response.json();
 
       if (!response.ok) {
-        const detail = Array.isArray(data.detail)
-          ? data.detail.map((item) => item.msg).join(", ")
-          : data.detail;
-
-        throw new Error(detail || "Upload failed.");
+        throw new Error(getErrorMessage(data, "Upload failed."));
       }
 
       setResult(data);
@@ -54,6 +75,68 @@ function UploadPanel() {
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleExport() {
+    setExportError("");
+    setExportSuccess("");
+
+    if (!file) {
+      setExportError("Please select an Excel (.xlsx) file first.");
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".xlsx")) {
+      setExportError("Unsupported format. Please select an .xlsx file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setExporting(true);
+
+    try {
+      const response = await fetch(EXPORT_API_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(
+          getErrorMessage(data, "Could not generate the CSV.")
+        );
+      }
+
+      const blob = await response.blob();
+
+      if (blob.size === 0) {
+        throw new Error("The API returned an empty CSV file.");
+      }
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = "product_month_summary.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+
+      setExportSuccess(
+        "Product-Month CSV generated successfully. Check your downloads."
+      );
+    } catch (err) {
+      setExportError(
+        err.message === "Failed to fetch"
+          ? "Cannot connect to the backend. Make sure FastAPI is running on port 8000."
+          : err.message || "CSV export failed."
+      );
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -81,17 +164,13 @@ function UploadPanel() {
             id="dataset-file"
             type="file"
             accept=".xlsx"
-            onChange={(event) => {
-              setFile(event.target.files?.[0] || null);
-              setError("");
-              setResult(null);
-            }}
+            onChange={handleFileChange}
           />
 
           <button
             className="refresh-button"
             type="submit"
-            disabled={loading}
+            disabled={loading || exporting}
           >
             {loading ? "Validating..." : "Upload & Validate"}
           </button>
@@ -133,7 +212,6 @@ function UploadPanel() {
             </div>
           </div>
 
-          {/* Added: descriptive Online Retail statistics */}
           {result.summary && (
             <>
               <h3>Dataset Summary</h3>
@@ -142,48 +220,55 @@ function UploadPanel() {
                 <div>
                   <span>Unique invoices</span>
                   <strong>
-                    {Number(result.summary.unique_invoices).toLocaleString()}
+                    {Number(
+                      result.summary.unique_invoices
+                    ).toLocaleString()}
                   </strong>
                 </div>
 
                 <div>
                   <span>Unique customers</span>
                   <strong>
-                    {Number(result.summary.unique_customers).toLocaleString()}
+                    {Number(
+                      result.summary.unique_customers
+                    ).toLocaleString()}
                   </strong>
                 </div>
 
                 <div>
                   <span>Countries</span>
                   <strong>
-                    {Number(result.summary.countries).toLocaleString()}
+                    {Number(
+                      result.summary.countries
+                    ).toLocaleString()}
                   </strong>
                 </div>
 
                 <div>
                   <span>Total quantity</span>
                   <strong>
-                    {Number(result.summary.total_quantity).toLocaleString()}
+                    {Number(
+                      result.summary.total_quantity
+                    ).toLocaleString()}
                   </strong>
                 </div>
 
                 <div>
                   <span>Net sales value</span>
                   <strong>
-                    {Number(result.summary.net_sales_value).toLocaleString(
-                      undefined,
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }
-                    )}
+                    {Number(
+                      result.summary.net_sales_value
+                    ).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </strong>
                 </div>
               </div>
 
               <p className="upload-file-name">
-                Descriptive statistics from the uploaded data;
-                these are not causal-effect estimates.
+                These are descriptive statistics from historical data,
+                not causal-effect estimates.
               </p>
             </>
           )}
@@ -213,9 +298,7 @@ function UploadPanel() {
                   {result.preview.map((row, index) => (
                     <tr key={index}>
                       {result.columns.map((column) => (
-                        <td key={column}>
-                          {row[column] ?? ""}
-                        </td>
+                        <td key={column}>{row[column] ?? ""}</td>
                       ))}
                     </tr>
                   ))}
@@ -229,6 +312,43 @@ function UploadPanel() {
           )}
         </div>
       )}
+
+      <div className="product-month-export">
+        <h3>Product-Month Export</h3>
+        <p>
+          Generate a CSV showing historical product activity grouped
+          by month. Select an Excel file above to get started.
+        </p>
+
+        <button
+          className="refresh-button"
+          type="button"
+          onClick={handleExport}
+          disabled={!file || loading || exporting}
+        >
+          {exporting
+            ? "Generating CSV..."
+            : "Download Product-Month CSV"}
+        </button>
+
+        {exportError && (
+          <div className="upload-error" role="alert">
+            <strong>Export failed</strong>
+            <p>{exportError}</p>
+          </div>
+        )}
+
+        {exportSuccess && (
+          <div className="upload-success" role="status">
+            <p>{exportSuccess}</p>
+          </div>
+        )}
+
+        <p className="upload-file-name">
+          Historical summary only; this export does not establish
+          causal effects of discounts or price changes.
+        </p>
+      </div>
     </section>
   );
 }

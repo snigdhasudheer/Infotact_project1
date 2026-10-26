@@ -1,4 +1,4 @@
-"""Create a dashboard-ready product-month CSV from Online Retail.xlsx.
+﻿"""Create a dashboard-ready product-month CSV from Online Retail.xlsx.
 
 Usage:
     python export_product_month.py "Online Retail.xlsx" --output product_month_summary.csv
@@ -59,6 +59,8 @@ def build_product_month_summary(df: pd.DataFrame) -> pd.DataFrame:
             Transaction_Count=("InvoiceNo", "nunique"),
         )
     )
+    summary["Average_Price"] = summary["Average_Price"].round(2)
+    summary["Total_Revenue"] = summary["Total_Revenue"].round(2)
     return summary[OUTPUT_COLUMNS]
 
 
@@ -80,7 +82,7 @@ def main() -> None:
     summary = build_product_month_summary(transactions)
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    summary.to_csv(output_path, index=False)
+    summary.to_csv(output_path, index=False, float_format="%.2f")
 
     print(f"Exported {len(summary):,} product-month rows to {output_path}")
     print("Columns:", ", ".join(summary.columns))

@@ -1,4 +1,3 @@
-﻿
 import { useState } from "react";
 import "./UploadPanel.css";
 
@@ -133,6 +132,61 @@ function UploadPanel() {
               <strong>{result.columns.length}</strong>
             </div>
           </div>
+
+          {/* Added: descriptive Online Retail statistics */}
+          {result.summary && (
+            <>
+              <h3>Dataset Summary</h3>
+
+              <div className="upload-summary">
+                <div>
+                  <span>Unique invoices</span>
+                  <strong>
+                    {Number(result.summary.unique_invoices).toLocaleString()}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Unique customers</span>
+                  <strong>
+                    {Number(result.summary.unique_customers).toLocaleString()}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Countries</span>
+                  <strong>
+                    {Number(result.summary.countries).toLocaleString()}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Total quantity</span>
+                  <strong>
+                    {Number(result.summary.total_quantity).toLocaleString()}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Net sales value</span>
+                  <strong>
+                    {Number(result.summary.net_sales_value).toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <p className="upload-file-name">
+                Descriptive statistics from the uploaded data;
+                these are not causal-effect estimates.
+              </p>
+            </>
+          )}
 
           <h3>Column names</h3>
 

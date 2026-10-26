@@ -72,12 +72,25 @@ async def upload_dataset(file: UploadFile = File(...)):
             orient="records"
         )
 
+        # Added: descriptive summary for the Online Retail dataset
+        summary = {
+            "unique_invoices": int(df["InvoiceNo"].nunique()),
+            "unique_customers": int(df["CustomerID"].nunique()),
+            "countries": int(df["Country"].nunique()),
+            "total_quantity": int(df["Quantity"].sum()),
+            "net_sales_value": round(
+                float((df["Quantity"] * df["UnitPrice"]).sum()),
+                2,
+            ),
+        }
+
         return {
             "message": "Dataset validation successful.",
             "filename": Path(filename).name,
             "rows": int(len(df)),
             "columns": [str(column) for column in df.columns],
             "preview": preview,
+            "summary": summary,
         }
 
     except (ValueError, FileNotFoundError) as exc:

@@ -1,9 +1,10 @@
-
+﻿
 import { useState } from "react";
 import "./UploadPanel.css";
 
 const API_URL = "http://127.0.0.1:8000/api/upload";
 const EXPORT_API_URL = "http://127.0.0.1:8000/api/export-product-month";
+const REPORT_API_URL = "http://127.0.0.1:8001/api/dataset-report";
 
 function getErrorMessage(data, fallback) {
   const detail = data?.detail;
@@ -19,16 +20,21 @@ function UploadPanel() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [exportError, setExportError] = useState("");
   const [exportSuccess, setExportSuccess] = useState("");
+  const [reportError, setReportError] = useState("");
+  const [reportSuccess, setReportSuccess] = useState("");
 
   function handleFileChange(event) {
     setFile(event.target.files?.[0] || null);
     setError("");
     setExportError("");
     setExportSuccess("");
+    setReportError("");
+    setReportSuccess("");
     setResult(null);
   }
 
@@ -37,6 +43,8 @@ function UploadPanel() {
     setError("");
     setExportError("");
     setExportSuccess("");
+    setReportError("");
+    setReportSuccess("");
     setResult(null);
 
     if (!file) {
@@ -140,6 +148,68 @@ function UploadPanel() {
     }
   }
 
+  async function handleReportDownload() {
+    setReportError("");
+    setReportSuccess("");
+
+    if (!file) {
+      setReportError("Please select an Excel (.xlsx) file first.");
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".xlsx")) {
+      setReportError("Unsupported format. Please select an .xlsx file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setReporting(true);
+
+    try {
+      const response = await fetch(REPORT_API_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(
+          getErrorMessage(data, "Could not generate the dataset report.")
+        );
+      }
+
+      const blob = await response.blob();
+
+      if (blob.size === 0) {
+        throw new Error("The API returned an empty report file.");
+      }
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = "econocausal_dataset_report.txt";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+
+      setReportSuccess(
+        "Dataset report downloaded successfully. Check your downloads."
+      );
+    } catch (err) {
+      setReportError(
+        err.message === "Failed to fetch"
+          ? "Cannot connect to the report backend. Check that FastAPI is running on port 8001."
+          : err.message || "Dataset report download failed."
+      );
+    } finally {
+      setReporting(false);
+    }
+  }
+
   return (
     <section className="panel upload-panel">
       <div className="panel-heading">
@@ -170,7 +240,7 @@ function UploadPanel() {
           <button
             className="refresh-button"
             type="submit"
-            disabled={loading || exporting}
+            disabled={loading || exporting || reporting}
           >
             {loading ? "Validating..." : "Upload & Validate"}
           </button>
@@ -324,7 +394,7 @@ function UploadPanel() {
           className="refresh-button"
           type="button"
           onClick={handleExport}
-          disabled={!file || loading || exporting}
+          disabled={!file || loading || exporting || reporting}
         >
           {exporting
             ? "Generating CSV..."
@@ -349,8 +419,48 @@ function UploadPanel() {
           causal effects of discounts or price changes.
         </p>
       </div>
+
+      <div className="product-month-export">
+        <h3>Dataset Report</h3>
+        <p>
+          Download a text report containing dataset dimensions,
+          column names, data-quality statistics and descriptive
+          sales information.
+        </p>
+
+        <button
+          className="refresh-button"
+          type="button"
+          onClick={handleReportDownload}
+          disabled={!file || loading || exporting || reporting}
+        >
+          {reporting
+            ? "Generating Report..."
+            : "Download Dataset Report"}
+        </button>
+
+        {reportError && (
+          <div className="upload-error" role="alert">
+            <strong>Report generation failed</strong>
+            <p>{reportError}</p>
+          </div>
+        )}
+
+        {reportSuccess && (
+          <div className="upload-success" role="status">
+            <p>{reportSuccess}</p>
+          </div>
+        )}
+
+        <p className="upload-file-name">
+          This report describes historical transactions. It does not
+          prove that discounts or price changes cause changes in
+          purchasing behaviour.
+        </p>
+      </div>
     </section>
   );
 }
 
 export default UploadPanel;
+

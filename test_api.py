@@ -111,6 +111,50 @@ class TestEconoCausalAPI(unittest.TestCase):
         self.assertEqual(len(exported), 1)
         self.assertEqual(exported.iloc[0]["Month"], "2010-12")
 
+    def test_dataset_report_rejects_csv_file(self):
+        response = self.client.post(
+            "/api/dataset-report",
+            files={
+                "file": ("data.csv", b"a,b\n1,2", "text/csv")
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(
+            "Unsupported format",
+            response.json()["detail"],
+        )
+
+    def test_dataset_report_returns_downloadable_text(self):
+        response = self.client.post(
+            "/api/dataset-report",
+            files={
+                "file": (
+                    "sample.xlsx",
+                    self.create_excel().getvalue(),
+                    "application/vnd.openxmlformats-officedocument."
+                    "spreadsheetml.sheet",
+                )
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/plain", response.headers["content-type"])
+        self.assertIn(
+            "econocausal_dataset_report.txt",
+            response.headers.get("content-disposition", ""),
+        )
+
+        report = response.text
+
+        self.assertIn("DATASET OVERVIEW", report)
+        self.assertIn("DATA QUALITY", report)
+        self.assertIn("DESCRIPTIVE SUMMARY", report)
+        self.assertIn("INTERPRETATION NOTE", report)
+        self.assertIn("Rows: 2", report)
+        self.assertIn("Columns: 8", report)
+        self.assertIn("Validation status: Successful", report)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

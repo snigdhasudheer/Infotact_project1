@@ -184,7 +184,7 @@ async def export_product_month(file: UploadFile = File(...)):
                 detail="No valid product-month records were found.",
             )
 
-        csv_content = summary.to_csv(index=False)
+        csv_content = summary.to_csv(index=False, float_format="%.2f")
 
         return Response(
             content=csv_content,
@@ -213,3 +213,99 @@ async def export_product_month(file: UploadFile = File(...)):
         ) from exc
     finally:
         await file.close()
+
+
+@app.post("/api/dataset-report")
+async def download_dataset_report(file: UploadFile = File(...)):
+    """Generate a downloadable text report for a validated dataset."""
+    filename = file.filename or ""
+
+    if Path(filename).suffix.lower() != ".xlsx":
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported format. Please upload an .xlsx file.",
+        )
+
+    try:
+        contents = await file.read()
+
+        if not contents:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded file is empty.",
+            )
+
+        # Reuse the existing validator without changing its logic.
+        with tempfile.NamedTemporaryFile(
+            suffix=".xlsx", delete=False
+        ) as temp:
+            temp_path = Path(temp.name)
+            temp.write(contents)
+
+        try:
+            df = validate_upload(temp_path)
+        finally:
+            temp_path.unlink(missing_ok=True)
+
+        total_rows, total_columns = df.shape
+        missing_cells = int(df.isna().sum().sum())
+        duplicate_rows = int(df.duplicated().sum())
+
+        unique_invoices = int(df["InvoiceNo"].nunique())
+        unique_customers = int(df["CustomerID"].nunique())
+        countries = int(df["Country"].nunique())
+        total_quantity = int(df["Quantity"].sum())
+        net_sales = round(
+            float((df["Quantity"] * df["UnitPrice"]).sum()), 2
+        )
+
+        report = f"""ECONOCAUSAL — DATASET REPORT
+========================================
+File: {Path(filename).name}
+Validation status: Successful
+
+DATASET OVERVIEW
+Rows: {total_rows}
+Columns: {total_columns}
+Column names: {", ".join(map(str, df.columns))}
+
+DATA QUALITY
+Missing cells: {missing_cells}
+Duplicate rows: {duplicate_rows}
+
+DESCRIPTIVE SUMMARY
+Unique invoices: {unique_invoices}
+Unique customers: {unique_customers}
+Countries: {countries}
+Total quantity: {total_quantity}
+Net sales value: {net_sales:.2f}
+
+INTERPRETATION NOTE
+These statistics describe historical transaction data.
+They do not establish that discounts or price changes
+cause changes in purchasing behaviour.
+Causal conclusions require a suitable experimental or
+causal-inference design and validated analysis.
+"""
+
+        return Response(
+            content=report,
+            media_type="text/plain; charset=utf-8",
+            headers={
+                "Content-Disposition":
+                    'attachment; filename="econocausal_dataset_report.txt"'
+            },
+        )
+
+    except HTTPException:
+        raise
+    except (ValueError, FileNotFoundError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Unable to generate the report. Please check the Excel file.",
+        ) from exc
+    finally:
+        await file.close()
+

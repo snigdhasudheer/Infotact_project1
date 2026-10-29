@@ -1,0 +1,93 @@
+﻿.baseline-metrics {
+  margin: 24px 0;
+  padding: 22px;
+  border: 1px solid #e7ebf2;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.baseline-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.baseline-heading h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.baseline-heading p {
+  margin: 0;
+  color: #718096;
+  line-height: 1.5;
+}
+
+.baseline-tag {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #edf3ff;
+  color: #315cbd;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.baseline-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.baseline-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.baseline-table th,
+.baseline-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #edf0f5;
+  white-space: nowrap;
+}
+
+.baseline-table thead th {
+  background: #f7f9fc;
+  color: #536178;
+  font-weight: 600;
+}
+
+.baseline-table tbody th {
+  color: #263c65;
+  font-weight: 600;
+}
+
+.baseline-control {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: #e8f7ee;
+  color: #18794e;
+  font-size: 11px;
+}
+
+.baseline-note {
+  margin: 16px 0 0;
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .baseline-metrics {
+    padding: 15px;
+  }
+
+  .baseline-heading {
+    flex-direction: column;
+  }
+}

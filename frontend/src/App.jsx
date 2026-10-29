@@ -1,6 +1,9 @@
 
 import UploadPanel from "./UploadPanel";
 import EDACharts from "./EDACharts";
+import BaselineMetrics, {
+  HILLSTROM_BASELINE_SUMMARY,
+} from "./BaselineMetrics";
 import { useEffect, useState } from "react";
 import "./App.css";
 
@@ -450,7 +453,8 @@ function App() {
         {/* Dataset and Exploratory Data Analysis */}
         <section className="panel" id="dataset-eda">
           <UploadPanel />
-          <EDACharts />
+          <BaselineMetrics summary={HILLSTROM_BASELINE_SUMMARY} />
+          <EDACharts summary={HILLSTROM_BASELINE_SUMMARY} />
         </section>
 
 

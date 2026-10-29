@@ -1,10 +1,10 @@
-﻿
+
 import { useState } from "react";
 import "./UploadPanel.css";
 
 const API_URL = "http://127.0.0.1:8000/api/upload";
 const EXPORT_API_URL = "http://127.0.0.1:8000/api/export-product-month";
-const REPORT_API_URL = "http://127.0.0.1:8001/api/dataset-report";
+const REPORT_API_URL = "http://127.0.0.1:8000/api/dataset-report";
 
 function getErrorMessage(data, fallback) {
   const detail = data?.detail;

@@ -1,4 +1,4 @@
-﻿# Day 5 — Methodology and Assumptions
+# Day 5 — Methodology and Assumptions
 
 ## 1. Project Objective
 
@@ -29,7 +29,7 @@ However, it does not directly provide randomized discount assignments or a compl
 
 ### Hillstrom
 
-Hillstrom contains email-marketing treatment information and customer outcomes. It may support analysis of the recorded marketing intervention, subject to validation of the treatment groups, outcomes, and required assumptions.
+Hillstrom contains email-marketing treatment information and customer outcomes. The treatment/outcome-check notebook identifies `segment` as the marketing-group variable, `conversion` as the primary purchase outcome, and `spend` and `visit` as additional outcomes. These are documented notebook definitions and must still be reconciled with Section A's final validated definitions before causal estimation.
 
 An email intervention is not equivalent to a discount intervention. Results must not be presented as the causal effect of a discount.
 
@@ -61,8 +61,8 @@ The final documentation should be aligned with Section A's validated definitions
 - Dataset decision and limitations are documented.
 - Excel upload validation and its five automated tests have been completed.
 - An initial upload interface and EDA chart component have been added.
-- Integration of the pending product-month CSV remains outstanding.
-- The methodology documentation is being prepared.
+- Product-month CSV export is integrated and verified: the API returned HTTP 200 with the expected CSV schema; all 16 backend unit tests pass, and the frontend production build succeeds.
+- Methodology and assumptions are documented; final alignment with Section A's validated definitions remains pending.
 - Causal estimation, refutation results, and budget optimization results have not yet been established by this document.
 
 ## 7. Limitations
@@ -71,4 +71,6 @@ Historical observational price data alone cannot establish the causal effect of 
 
 No numerical causal effects, model-performance results, or budget savings are claimed here. Any future simulated scenarios must be explicitly labelled as simulated.
 
+### Pending Section A Inputs
 
+Before causal estimation, confirm the final causal diagram, treatment and outcome definitions, and justified covariates with Section A. The current Hillstrom notebook identifies `segment` as the marketing-group variable and `conversion` as the primary purchase outcome, with `spend` and `visit` as additional outcomes. These notebook definitions are preliminary until reconciled with Section A. Hillstrom studies email-marketing interventions, not assigned discount amounts; it must not be used alone to claim a causal discount or price effect. Online Retail price-quantity relationships remain descriptive unless a defensible identification strategy and supporting data are established.

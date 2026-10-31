@@ -1,4 +1,5 @@
 
+import TreatmentEffectResults from "./TreatmentEffectResults";
 import UploadPanel from "./UploadPanel";
 import EDACharts from "./EDACharts";
 import BaselineMetrics, {
@@ -457,75 +458,9 @@ function App() {
           <EDACharts summary={HILLSTROM_BASELINE_SUMMARY} />
         </section>
 
-
-        {/* Treatment Effect Analysis */}
+        {/* Day 10 - Treatment Effect Results */}
         <section className="panel" id="causal-analysis">
-          <div className="panel-heading">
-            <div>
-              <h2>Treatment Effect Analysis</h2>
-              <p>
-                Causal analysis using Double Machine Learning (DML).
-              </p>
-            </div>
-
-            <span className="task-status pending">
-              Not yet estimated
-            </span>
-          </div>
-
-          <div className="stats-grid">
-            <div className="stat-card">
-              <p>Average Treatment Effect (ATE)</p>
-              <h2>Pending</h2>
-              <span>Requires a validated causal model</span>
-            </div>
-
-            <div className="stat-card">
-              <p>95% Confidence Interval</p>
-              <h2>Pending</h2>
-              <span>Will be reported after model estimation</span>
-            </div>
-
-            <div className="stat-card">
-              <p>Analysis Sample Size</p>
-              <h2>Pending</h2>
-              <span>Eligible observations used by the model</span>
-            </div>
-
-            <div className="stat-card">
-              <p>Model Status</p>
-              <h2>Not trained</h2>
-              <span>No validated treatment-effect estimate available</span>
-            </div>
-          </div>
-
-          <div className="chart-placeholder">
-            Treatment effect visualization will appear after
-            a valid causal model has been trained and evaluated.
-          </div>
-
-          <div className="note">
-            <strong>Data limitation:</strong> Online Retail records
-            contain historical transactions, but do not by themselves
-            establish which customers received a discount or what
-            non-purchasing customers would have done. Therefore, this
-            dashboard does not report a causal discount effect yet.
-            Estimates must be added from validated treatment/control
-            data and model results.
-          </div>
-        </section>
-
-        <section className="panel" id="causal-analysis">
-          <h2>Treatment Effect Analysis</h2>
-
-          <p>
-            Planned: estimate the effect of a pricing or marketing
-            intervention using an appropriate causal method.
-          </p>
-
-          <div className="chart-placeholder">
-            Treatment effect visualization will appear here
-          </div>
+          <TreatmentEffectResults />
         </section>
 
         {/* Planned recommendations */}
@@ -565,3 +500,4 @@ function App() {
 }
 
 export default App;
+

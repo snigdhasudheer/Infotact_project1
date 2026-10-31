@@ -1,0 +1,7 @@
+Model,Metric,Value
+Treatment Model,Accuracy,0.5009738812099594
+Treatment Model,ROC-AUC,0.5025772041788893
+Treatment Model,Log Loss,0.699821631542511
+Outcome Model,RMSE,0.0956229274138244
+Outcome Model,MAE,0.018208461063452686
+Outcome Model,R2 Score,-0.010879329489304812

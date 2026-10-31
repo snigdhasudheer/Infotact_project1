@@ -1,0 +1,17 @@
+Metric,Value
+Treatment Variable,treatment
+Outcome Variable,outcome
+Treatment Group,Mens E-Mail
+Control Group,No E-Mail
+Sample Size,42613
+Number of Features,9
+ATE,0.0067300341686025115
+ATE Percentage Points,0.6730034168602511
+95% CI Lower,0.004930046744075232
+95% CI Upper,0.00853002159312979
+Mean CATE,0.0067300341686025115
+Minimum CATE,0.001002189597781513
+Maximum CATE,0.029542526705475535
+CATE Standard Deviation,0.003732812764183508
+Treatment Assignment Rate,0.5000117335085538
+Overall Conversion Rate,0.009128669654800178

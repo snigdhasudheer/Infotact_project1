@@ -1,7 +1,7 @@
 import "./SectionADmlResults.css";
 
 // Values verified from section_a_dml_results.csv
-const DML_RESULTS = {
+export const DML_RESULTS = {
   treatmentVariable: "treatment",
   outcomeVariable: "outcome",
   treatmentGroup: "Mens E-Mail",

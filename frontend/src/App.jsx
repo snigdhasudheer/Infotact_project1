@@ -1,4 +1,4 @@
-
+import { DML_RESULTS } from "./SectionADmlResults";
 import SectionADmlResults from "./SectionADmlResults";
 import TreatmentEffectResults from "./TreatmentEffectResults";
 import UploadPanel from "./UploadPanel";
@@ -469,7 +469,23 @@ function App() {
 
         {/* Day 11 - Treatment Effect Distribution and Uncertainty */}
         <section className="panel" id="treatment-effects">
-          <TreatmentEffectResults />
+          <TreatmentEffectResults
+  results={{
+    ate: DML_RESULTS.ate,
+    confidenceInterval: [
+      DML_RESULTS.ciLower,
+      DML_RESULTS.ciUpper,
+    ],
+    sampleSize: DML_RESULTS.sampleSize,
+    modelStatus: "Estimated — LinearDML",
+    cateSummary: {
+      mean: DML_RESULTS.meanCate,
+      min: DML_RESULTS.minCate,
+      max: DML_RESULTS.maxCate,
+      std: DML_RESULTS.cateStd,
+    },
+  }}
+/>
         </section>
 
 

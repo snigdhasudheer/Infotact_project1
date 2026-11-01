@@ -1,44 +1,30 @@
 import Plot from "react-plotly.js";
 import "./TreatmentEffectResults.css";
 
-const DEMO_EFFECTS = [
-  -0.12, -0.09, -0.08, -0.07, -0.06, -0.05,
-  -0.04, -0.03, -0.02, -0.02, -0.01, 0.00,
-  0.01, 0.02, 0.02, 0.03, 0.04, 0.04,
-  0.05, 0.05, 0.06, 0.07, 0.08, 0.08,
-  0.09, 0.10, 0.11, 0.12, 0.13, 0.15,
-];
+const formatPP = (value) => `${(Number(value) * 100).toFixed(4)} pp`;
 
 function TreatmentEffectResults({ results = null }) {
-  const hasResults = Boolean(results);
+  const ate = Number(results?.ate);
+  const confidenceInterval = results?.confidenceInterval;
 
-  const metrics = [
-    {
-      label: "Average Treatment Effect (ATE)",
-      value: hasResults ? results.ate ?? "Unavailable" : "Pending",
-      description: "Estimated average treatment effect",
-    },
-    {
-      label: "95% Confidence Interval",
-      value:
-        hasResults && results.confidenceInterval
-          ? `${results.confidenceInterval[0]} to ${results.confidenceInterval[1]}`
-          : "Pending",
-      description: "Uncertainty range of the estimate",
-    },
-    {
-      label: "Analysis Sample Size",
-      value: hasResults ? results.sampleSize ?? "Unavailable" : "Pending",
-      description: "Observations used by the model",
-    },
-    {
-      label: "Model Status",
-      value: hasResults ? results.modelStatus ?? "Unavailable" : "Not trained",
-      description: "Status supplied by the model",
-    },
-  ];
+  const validAte =
+    Number.isFinite(ate);
 
-  // Accept numeric effects or objects containing effect/CATE values.
+  const validAteInterval =
+    Array.isArray(confidenceInterval) &&
+    confidenceInterval.length >= 2 &&
+    Number.isFinite(Number(confidenceInterval[0])) &&
+    Number.isFinite(Number(confidenceInterval[1]));
+
+  const cate = results?.cateSummary;
+
+  const validCate =
+    cate &&
+    ["mean", "min", "max", "std"].every((key) =>
+      Number.isFinite(Number(cate[key]))
+    );
+
+  // Individual CATE observations are optional.
   const actualEffects = Array.isArray(results?.effectDistribution)
     ? results.effectDistribution
         .map((item) =>
@@ -49,10 +35,6 @@ function TreatmentEffectResults({ results = null }) {
         .filter(Number.isFinite)
     : [];
 
-  const useDemoData = !hasResults;
-  const distributionData = useDemoData ? DEMO_EFFECTS : actualEffects;
-
-  // Individual effect intervals are optional.
   const individualIntervals = Array.isArray(results?.effectDistribution)
     ? results.effectDistribution.filter(
         (item) =>
@@ -63,81 +45,120 @@ function TreatmentEffectResults({ results = null }) {
       )
     : [];
 
-  const ateInterval = results?.confidenceInterval;
+  const metrics = [
+    {
+      label: "Average Treatment Effect",
+      value: validAte ? formatPP(ate) : "Unavailable",
+      description: "Estimated average change in conversion probability",
+    },
+    {
+      label: "95% Confidence Interval",
+      value: validAteInterval
+        ? `${formatPP(confidenceInterval[0])} to ${formatPP(confidenceInterval[1])}`
+        : "Unavailable",
+      description: "Uncertainty around the average effect",
+    },
+    {
+      label: "Analysis Sample Size",
+      value: results?.sampleSize?.toLocaleString("en-IN") ?? "Unavailable",
+      description: "Observations used in DML estimation",
+    },
+    {
+      label: "Model",
+      value: results?.modelStatus ?? "Unavailable",
+      description: "Estimation method",
+    },
+  ];
 
-  const validAteInterval =
-    Array.isArray(ateInterval) &&
-    ateInterval.length >= 2 &&
-    Number.isFinite(Number(ateInterval[0])) &&
-    Number.isFinite(Number(ateInterval[1]));
+  const cateMetrics = validCate
+    ? [
+        { label: "Mean CATE", value: formatPP(cate.mean) },
+        { label: "Minimum CATE", value: formatPP(cate.min) },
+        { label: "Maximum CATE", value: formatPP(cate.max) },
+        { label: "CATE Standard Deviation", value: formatPP(cate.std) },
+      ]
+    : [];
 
-  const uncertaintyTrace = individualIntervals.length
+  const ateUncertaintyTrace =
+    validAte && validAteInterval
+      ? [
+          {
+            type: "scatter",
+            mode: "markers",
+            x: [ate * 100],
+            y: ["Average Treatment Effect"],
+            marker: { size: 13 },
+            error_x: {
+              type: "data",
+              symmetric: false,
+              array: [(Number(confidenceInterval[1]) - ate) * 100],
+              arrayminus: [(ate - Number(confidenceInterval[0])) * 100],
+            },
+            name: "ATE with 95% CI",
+            hovertemplate:
+              "ATE: %{x:.4f} pp<extra></extra>",
+          },
+        ]
+      : [];
+
+  const cateRangeTrace =
+    validCate
+      ? [
+          {
+            type: "scatter",
+            mode: "markers",
+            x: [Number(cate.mean) * 100],
+            y: ["CATE summary range"],
+            marker: { size: 13 },
+            error_x: {
+              type: "data",
+              symmetric: false,
+              array: [
+                (Number(cate.max) - Number(cate.mean)) * 100,
+              ],
+              arrayminus: [
+                (Number(cate.mean) - Number(cate.min)) * 100,
+              ],
+            },
+            name: "Mean and min–max range",
+            hovertemplate:
+              "Mean CATE: %{x:.4f} pp<extra></extra>",
+          },
+        ]
+      : [];
+
+  const individualUncertaintyTrace = individualIntervals.length
     ? [
         {
           type: "scatter",
           mode: "markers",
           x: individualIntervals.map((item) =>
-            Number(item.effect ?? item.cate)
+            Number(item.effect ?? item.cate) * 100
           ),
-          y: individualIntervals.map((_, index) => `Effect ${index + 1}`),
-          orientation: "h",
-          marker: { size: 8 },
+          y: individualIntervals.map(
+            (_, index) => `Observation ${index + 1}`
+          ),
+          marker: { size: 7 },
           error_x: {
             type: "data",
             symmetric: false,
             array: individualIntervals.map(
               (item) =>
-                Number(item.upper ?? item.upperBound) -
-                Number(item.effect ?? item.cate)
+                (Number(item.upper ?? item.upperBound) -
+                  Number(item.effect ?? item.cate)) *
+                100
             ),
             arrayminus: individualIntervals.map(
               (item) =>
-                Number(item.effect ?? item.cate) -
-                Number(item.lower ?? item.lowerBound)
+                (Number(item.effect ?? item.cate) -
+                  Number(item.lower ?? item.lowerBound)) *
+                100
             ),
           },
-          name: "Individual effect intervals",
+          name: "Individual confidence intervals",
         },
       ]
-    : validAteInterval
-      ? [
-          {
-            type: "scatter",
-            mode: "markers",
-            x: [Number(results.ate)],
-            y: ["Average Treatment Effect"],
-            marker: { size: 12 },
-            error_x: {
-              type: "data",
-              symmetric: false,
-              array: [
-                Number(ateInterval[1]) - Number(results.ate),
-              ],
-              arrayminus: [
-                Number(results.ate) - Number(ateInterval[0]),
-              ],
-            },
-            name: "95% Confidence Interval",
-          },
-        ]
-      : useDemoData
-        ? [
-            {
-              type: "scatter",
-              mode: "markers",
-              x: [0.04],
-              y: ["Illustrative ATE"],
-              marker: { size: 12 },
-              error_x: {
-                type: "data",
-                symmetric: false,
-                array: [0.08],
-                arrayminus: [0.08],
-              },
-              name: "Illustrative 95% CI",
-            },
-          ]
-        : [];
+    : [];
 
   return (
     <section className="treatment-results">
@@ -145,13 +166,13 @@ function TreatmentEffectResults({ results = null }) {
         <div>
           <h2>Treatment Effect Analysis</h2>
           <p>
-            Double Machine Learning: average and heterogeneous treatment
-            effects.
+            Actual Double Machine Learning results from the Hillstrom
+            Mens E-Mail versus No E-Mail experiment.
           </p>
         </div>
 
-        <span className={`task-status ${hasResults ? "review" : "pending"}`}>
-          {hasResults ? "Results available for review" : "Not yet estimated"}
+        <span className="task-status review">
+          Actual DML results
         </span>
       </div>
 
@@ -168,27 +189,84 @@ function TreatmentEffectResults({ results = null }) {
       <div className="day11-section">
         <div className="day11-heading">
           <div>
-            <h3>Treatment Effect Distribution</h3>
+            <h3>CATE Summary</h3>
             <p>
-              Distribution of estimated individual treatment effects.
+              Summary statistics of the estimated conditional treatment
+              effects.
             </p>
           </div>
           <span className="chart-tag">
-            {useDemoData ? "Illustrative preview" : "Model results"}
+            Actual summary statistics
           </span>
         </div>
 
-        {distributionData.length > 0 ? (
+        {validCate ? (
+          <>
+            <div className="stats-grid">
+              {cateMetrics.map((metric) => (
+                <div className="stat-card" key={metric.label}>
+                  <p>{metric.label}</p>
+                  <h2>{metric.value}</h2>
+                </div>
+              ))}
+            </div>
+
+            <Plot
+              data={cateRangeTrace}
+              layout={{
+                autosize: true,
+                height: 240,
+                margin: { l: 130, r: 30, t: 20, b: 55 },
+                xaxis: {
+                  title: "Estimated CATE (percentage points)",
+                  zeroline: true,
+                },
+                yaxis: { automargin: true },
+                showlegend: false,
+              }}
+              config={{ responsive: true, displayModeBar: false }}
+              useResizeHandler
+              style={{ width: "100%" }}
+            />
+
+            <p className="dml-caption">
+              The horizontal range represents the reported minimum and
+              maximum CATE, with the mean marked. It is not a confidence
+              interval or a substitute for the individual CATE distribution.
+            </p>
+          </>
+        ) : (
+          <div className="chart-empty">
+            CATE summary statistics are not available.
+          </div>
+        )}
+      </div>
+
+      <div className="day11-section">
+        <div className="day11-heading">
+          <div>
+            <h3>Treatment Effect Distribution</h3>
+            <p>
+              Distribution of individual estimated treatment effects.
+            </p>
+          </div>
+          <span className="chart-tag">
+            {actualEffects.length
+              ? "Individual model estimates"
+              : "Awaiting individual CATE data"}
+          </span>
+        </div>
+
+        {actualEffects.length > 0 ? (
           <Plot
             data={[
               {
-                x: distributionData,
+                x: actualEffects.map((value) => value * 100),
                 type: "histogram",
-                nbinsx: 15,
-                name: "Treatment effects",
-                marker: { opacity: 0.8 },
+                nbinsx: 30,
+                name: "Individual CATE",
                 hovertemplate:
-                  "Effect: %{x}<br>Observations: %{y}<extra></extra>",
+                  "CATE: %{x:.4f} pp<br>Frequency: %{y}<extra></extra>",
               },
             ]}
             layout={{
@@ -196,12 +274,10 @@ function TreatmentEffectResults({ results = null }) {
               height: 330,
               margin: { l: 55, r: 25, t: 20, b: 55 },
               xaxis: {
-                title: "Estimated treatment effect",
+                title: "Individual CATE (percentage points)",
                 zeroline: true,
               },
-              yaxis: {
-                title: "Frequency",
-              },
+              yaxis: { title: "Frequency" },
               showlegend: false,
             }}
             config={{ responsive: true, displayModeBar: false }}
@@ -210,7 +286,8 @@ function TreatmentEffectResults({ results = null }) {
           />
         ) : (
           <div className="chart-empty">
-            Individual treatment-effect data is not available yet.
+            Individual CATE values are not exported yet. The actual
+            distribution will appear after the Section A CSV is received.
           </div>
         )}
       </div>
@@ -220,37 +297,51 @@ function TreatmentEffectResults({ results = null }) {
           <div>
             <h3>Effect Uncertainty</h3>
             <p>
-              Confidence intervals show the uncertainty around estimated
-              effects.
+              Confidence interval for the average treatment effect.
             </p>
           </div>
           <span className="chart-tag">
-            {individualIntervals.length
-              ? "Individual intervals"
+            {individualUncertaintyTrace.length
+              ? "Individual intervals available"
               : validAteInterval
-                ? "ATE confidence interval"
-                : useDemoData
-                  ? "Illustrative preview"
-                  : "Awaiting intervals"}
+                ? "Actual ATE 95% CI"
+                : "Awaiting confidence interval"}
           </span>
         </div>
 
-        {uncertaintyTrace.length > 0 ? (
+        {individualUncertaintyTrace.length > 0 ? (
           <Plot
-            data={uncertaintyTrace}
+            data={individualUncertaintyTrace}
             layout={{
               autosize: true,
-              height: individualIntervals.length
-                ? Math.max(300, individualIntervals.length * 35)
-                : 250,
-              margin: { l: 150, r: 30, t: 20, b: 55 },
+              height: Math.max(
+                300,
+                individualUncertaintyTrace[0].y.length * 25
+              ),
+              margin: { l: 140, r: 30, t: 20, b: 55 },
               xaxis: {
-                title: "Estimated treatment effect",
+                title: "Estimated treatment effect (pp)",
                 zeroline: true,
               },
-              yaxis: {
-                automargin: true,
+              yaxis: { automargin: true },
+              showlegend: false,
+            }}
+            config={{ responsive: true, displayModeBar: false }}
+            useResizeHandler
+            style={{ width: "100%" }}
+          />
+        ) : ateUncertaintyTrace.length > 0 ? (
+          <Plot
+            data={ateUncertaintyTrace}
+            layout={{
+              autosize: true,
+              height: 250,
+              margin: { l: 150, r: 30, t: 20, b: 55 },
+              xaxis: {
+                title: "Average treatment effect (pp)",
+                zeroline: true,
               },
+              yaxis: { automargin: true },
               showlegend: false,
             }}
             config={{ responsive: true, displayModeBar: false }}
@@ -259,25 +350,17 @@ function TreatmentEffectResults({ results = null }) {
           />
         ) : (
           <div className="chart-empty">
-            Valid confidence interval data is not available yet.
+            Valid confidence interval data is not available.
           </div>
         )}
       </div>
 
-      {useDemoData && (
-        <div className="demo-warning">
-          <strong>Illustrative data only:</strong> These charts use sample
-          values to demonstrate the dashboard. They are not calculated from
-          Hillstrom, Online Retail, or a trained DML model. Do not use them
-          for causal conclusions.
-        </div>
-      )}
-
-      <div className="note treatment-note">
-        <strong>Data limitation:</strong> Online Retail records contain
-        historical transactions, but do not establish discount assignment or
-        non-purchasing customer outcomes. Actual causal estimates require
-        validated treatment/control data and model results.
+      <div className="demo-warning">
+        <strong>Interpretation limitation:</strong> This experiment estimates
+        the effect of Mens E-Mail versus No E-Mail, not the effect of a
+        product discount. The available CATE values are summary statistics;
+        individual distribution and individual confidence intervals require
+        additional Section A outputs.
       </div>
     </section>
   );

@@ -1,0 +1,11 @@
+Metric,Value
+Control Sample Size,21306.0
+Treatment Sample Size,21307.0
+Control Conversions,122.0
+Treatment Conversions,267.0
+Control Conversion Rate,0.005726086548390125
+Treatment Conversion Rate,0.01253109306800582
+Raw Treatment Effect,0.006805006519615695
+DML ATE,0.0067300341686025115
+Raw Effect Percentage Points,0.6805006519615695
+DML Effect Percentage Points,0.6730034168602511

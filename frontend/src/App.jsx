@@ -1,4 +1,5 @@
 
+import SectionADmlResults from "./SectionADmlResults";
 import TreatmentEffectResults from "./TreatmentEffectResults";
 import UploadPanel from "./UploadPanel";
 import EDACharts from "./EDACharts";
@@ -189,11 +190,14 @@ function App() {
             <span>Review branch and merge status</span>
           </div>
 
+
           <div className="stat-card">
             <p>Causal Analysis</p>
-            <h2>Pending</h2>
-            <span>DML model not yet trained</span>
+            <h2>Results Integrated</h2>
+            <span>Hillstrom email-treatment DML results</span>
           </div>
+
+
 
           <div className="stat-card">
             <p>Budget Optimizer</p>
@@ -227,8 +231,9 @@ function App() {
                 Data validation
               </li>
               <li>
-                <span className="task-status pending">Pending</span>
-                DML model implementation
+                <span className="task-status review">Review</span>
+                DML results integrated into dashboard
+                
               </li>
               <li>
                 <span className="task-status pending">Pending</span>
@@ -457,11 +462,16 @@ function App() {
           <BaselineMetrics summary={HILLSTROM_BASELINE_SUMMARY} />
           <EDACharts summary={HILLSTROM_BASELINE_SUMMARY} />
         </section>
-
-        {/* Day 10 - Treatment Effect Results */}
+        {/* Day 10 - Actual Section A DML Results */}
         <section className="panel" id="causal-analysis">
+          <SectionADmlResults />
+        </section>
+
+        {/* Day 11 - Treatment Effect Distribution and Uncertainty */}
+        <section className="panel" id="treatment-effects">
           <TreatmentEffectResults />
         </section>
+
 
         {/* Planned recommendations */}
         <section className="panel" id="recommendations">

@@ -106,3 +106,51 @@ The raw comparison and DML estimate are close, providing a useful consistency ch
 The Hillstrom dataset is an email marketing experiment. This Section A analysis estimates the effect of email marketing treatment on customer conversion; it does not directly estimate a product pricing or discount effect.
 
 Note: the validator checks data quality only. It does not estimate causal price effects or alter the source data.
+
+### DoWhy Causal Estimation and Refutation Analysis
+
+To evaluate the robustness of the estimated treatment effect, an additional causal analysis was performed using the DoWhy library.
+
+**1. Causal Model Setup**
+
+- Treatment: Mens E-Mail (1), No E-Mail (0).
+- Outcome: Conversion (1 = converted, 0 = not converted).
+- Dataset size: 42,613 observations.
+- Confounders: Recency, history, mens, womens, newbie, zip code and channel (after encoding).
+- Estimation method: Backdoor linear regression adjustment.
+
+**2. DoWhy ATE Estimation**
+
+The estimated Average Treatment Effect (ATE) was:
+
+- ATE: 0.00677349
+- ATE in percentage points: 0.67735
+
+This indicates an estimated increase of approximately 0.677 percentage points in conversion probability for the Mens E-Mail treatment compared with the No E-Mail control group, conditional on the selected observed covariates.
+
+**3. Refutation Tests**
+
+Three refutation tests were conducted using DoWhy with 10 simulations each.
+
+| Refutation Test | Original ATE | New Effect | p-value |
+|---|---:|---:|---:|
+| Random Common Cause | 0.00677349 | 0.00676996 | 0.328090 |
+| Placebo Treatment | 0.00677349 | -0.00048635 | 0.267439 |
+| Data Subset (80%) | 0.00677349 | 0.00664271 | 0.345724 |
+
+**4. Interpretation**
+
+- Random Common Cause: The estimated effect remained almost unchanged after adding a random common cause.
+- Placebo Treatment: The placebo treatment produced an effect close to zero.
+- Data Subset: The estimated effect remained relatively stable when the analysis was performed on 80% subsets of the observations.
+
+Overall, these results provide encouraging evidence of stability under the three tested refutation procedures. They do not prove that all confounding has been eliminated or that the causal assumptions are necessarily valid.
+
+**5. Limitations**
+
+- The analysis relies on the unconfoundedness assumption and the selected observed covariates.
+- The dataset represents an email marketing experiment, not a real-world dynamic pricing experiment.
+- Refutation tests are sensitivity checks and cannot establish causal validity on their own.
+- DoWhy displayed a normal-distribution assumption warning during the refutation procedures, which should be considered when interpreting the results.
+
+**Result File:** `section_a_dowhy_refutation_results.csv`

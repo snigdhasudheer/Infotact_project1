@@ -1,3 +1,4 @@
+import CausalAssumptionsAudit from "./CausalAssumptionsAudit";
 import { DML_RESULTS } from "./SectionADmlResults";
 import SectionADmlResults from "./SectionADmlResults";
 import TreatmentEffectResults from "./TreatmentEffectResults";
@@ -465,6 +466,7 @@ function App() {
         {/* Day 10 - Actual Section A DML Results */}
         <section className="panel" id="causal-analysis">
           <SectionADmlResults />
+          <CausalAssumptionsAudit />
         </section>
 
         {/* Day 11 - Treatment Effect Distribution and Uncertainty */}

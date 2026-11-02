@@ -1,20 +1,145 @@
+import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import "./TreatmentEffectResults.css";
 
-const formatPP = (value) => `${(Number(value) * 100).toFixed(4)} pp`;
+const formatPP = (value) =>
+  `${(Number(value) * 100).toFixed(4)} pp`;
+
+const REQUIRED_COLUMNS = [
+  "observation_id",
+  "treatment",
+  "outcome",
+  "cate",
+  "cate_ci_lower",
+  "cate_ci_upper",
+  "cate_stderr",
+];
+
+function parseIndividualCateCSV(csvText) {
+  const lines = csvText.trim().split(/\r?\n/);
+
+  if (lines.length < 2) {
+    throw new Error("The individual CATE CSV is empty.");
+  }
+
+  const headers = lines[0]
+    .replace(/^\uFEFF/, "")
+    .split(",")
+    .map((header) => header.trim());
+
+  const indexes = Object.fromEntries(
+    REQUIRED_COLUMNS.map((column) => [
+      column,
+      headers.indexOf(column),
+    ])
+  );
+
+  if (Object.values(indexes).some((index) => index === -1)) {
+    throw new Error("CSV is missing required columns.");
+  }
+
+  const rows = lines.slice(1).map((line, index) => {
+    const values = line.split(",");
+
+    const row = Object.fromEntries(
+      REQUIRED_COLUMNS.map((column) => [
+        column,
+        values[indexes[column]]?.trim() ?? "",
+      ])
+    );
+
+    const parsed = Object.fromEntries(
+      REQUIRED_COLUMNS.map((column) => [
+        column,
+        Number(row[column]),
+      ])
+    );
+
+    const valid =
+      REQUIRED_COLUMNS.every(
+        (column) =>
+          row[column] !== "" &&
+          Number.isFinite(parsed[column])
+      ) &&
+      [0, 1].includes(parsed.treatment) &&
+      [0, 1].includes(parsed.outcome) &&
+      parsed.cate_ci_lower <= parsed.cate &&
+      parsed.cate <= parsed.cate_ci_upper &&
+      parsed.cate_stderr >= 0;
+
+    if (!valid) {
+      throw new Error(
+        `Invalid data found at CSV row ${index + 2}.`
+      );
+    }
+
+    return parsed;
+  });
+
+  return rows;
+}
 
 function TreatmentEffectResults({ results = null }) {
+  const [cateRows, setCateRows] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(true);
+  const [csvError, setCsvError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadIndividualCate() {
+      try {
+        const response = await fetch(
+          "/section_a_individual_cate.csv"
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `CSV loading failed: ${response.status}`
+          );
+        }
+
+        const csvText = await response.text();
+        const rows = parseIndividualCateCSV(csvText);
+
+        if (!cancelled) {
+          setCateRows(rows);
+          setCsvLoading(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setCsvError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load individual CATE data."
+          );
+          setCsvLoading(false);
+        }
+      }
+    }
+
+    loadIndividualCate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // --------------------------------------------------
+  // Existing ATE and DML summary calculations
+  // --------------------------------------------------
+
   const ate = Number(results?.ate);
   const confidenceInterval = results?.confidenceInterval;
 
-  const validAte =
-    Number.isFinite(ate);
+  const validAte = Number.isFinite(ate);
 
   const validAteInterval =
     Array.isArray(confidenceInterval) &&
     confidenceInterval.length >= 2 &&
     Number.isFinite(Number(confidenceInterval[0])) &&
-    Number.isFinite(Number(confidenceInterval[1]));
+    Number.isFinite(Number(confidenceInterval[1])) &&
+    Number(confidenceInterval[0]) <= Number(confidenceInterval[1]);
 
   const cate = results?.cateSummary;
 
@@ -24,32 +149,46 @@ function TreatmentEffectResults({ results = null }) {
       Number.isFinite(Number(cate[key]))
     );
 
-  // Individual CATE observations are optional.
-  const actualEffects = Array.isArray(results?.effectDistribution)
-    ? results.effectDistribution
-        .map((item) =>
-          typeof item === "number"
-            ? item
-            : Number(item?.effect ?? item?.cate)
-        )
-        .filter(Number.isFinite)
-    : [];
+  // --------------------------------------------------
+  // Individual CATE observations from Section A CSV
+  // --------------------------------------------------
 
-  const individualIntervals = Array.isArray(results?.effectDistribution)
-    ? results.effectDistribution.filter(
-        (item) =>
-          typeof item === "object" &&
-          Number.isFinite(Number(item?.effect ?? item?.cate)) &&
-          Number.isFinite(Number(item?.lower ?? item?.lowerBound)) &&
-          Number.isFinite(Number(item?.upper ?? item?.upperBound))
-      )
-    : [];
+  const actualEffects = cateRows.map((item) => item.cate);
+  const individualIntervals = cateRows;
+
+  // Use all rows for histograms, but keep the interval
+  // chart limited to 250 representative observations.
+
+  const intervalSample =
+    individualIntervals.length > 250
+      ? Array.from({ length: 250 }, (_, index) => {
+          const selectedIndex = Math.floor(
+            (index * (individualIntervals.length - 1)) / 249
+          );
+
+          return individualIntervals[selectedIndex];
+        })
+      : individualIntervals;
+
+  const standardErrors = cateRows.map(
+    (item) => item.cate_stderr * 100
+  );
+
+  const confidenceIntervalWidths = cateRows.map(
+    (item) =>
+      (item.cate_ci_upper - item.cate_ci_lower) * 100
+  );
+
+  // --------------------------------------------------
+  // Existing main metrics
+  // --------------------------------------------------
 
   const metrics = [
     {
       label: "Average Treatment Effect",
       value: validAte ? formatPP(ate) : "Unavailable",
-      description: "Estimated average change in conversion probability",
+      description:
+        "Estimated average change in conversion probability",
     },
     {
       label: "95% Confidence Interval",
@@ -60,7 +199,9 @@ function TreatmentEffectResults({ results = null }) {
     },
     {
       label: "Analysis Sample Size",
-      value: results?.sampleSize?.toLocaleString("en-IN") ?? "Unavailable",
+      value:
+        results?.sampleSize?.toLocaleString("en-IN") ??
+        "Unavailable",
       description: "Observations used in DML estimation",
     },
     {
@@ -75,9 +216,16 @@ function TreatmentEffectResults({ results = null }) {
         { label: "Mean CATE", value: formatPP(cate.mean) },
         { label: "Minimum CATE", value: formatPP(cate.min) },
         { label: "Maximum CATE", value: formatPP(cate.max) },
-        { label: "CATE Standard Deviation", value: formatPP(cate.std) },
+        {
+          label: "CATE Standard Deviation",
+          value: formatPP(cate.std),
+        },
       ]
     : [];
+
+  // --------------------------------------------------
+  // ATE confidence interval trace
+  // --------------------------------------------------
 
   const ateUncertaintyTrace =
     validAte && validAteInterval
@@ -91,8 +239,12 @@ function TreatmentEffectResults({ results = null }) {
             error_x: {
               type: "data",
               symmetric: false,
-              array: [(Number(confidenceInterval[1]) - ate) * 100],
-              arrayminus: [(ate - Number(confidenceInterval[0])) * 100],
+              array: [
+                (Number(confidenceInterval[1]) - ate) * 100,
+              ],
+              arrayminus: [
+                (ate - Number(confidenceInterval[0])) * 100,
+              ],
             },
             name: "ATE with 95% CI",
             hovertemplate:
@@ -101,64 +253,82 @@ function TreatmentEffectResults({ results = null }) {
         ]
       : [];
 
-  const cateRangeTrace =
-    validCate
-      ? [
-          {
-            type: "scatter",
-            mode: "markers",
-            x: [Number(cate.mean) * 100],
-            y: ["CATE summary range"],
-            marker: { size: 13 },
-            error_x: {
-              type: "data",
-              symmetric: false,
-              array: [
-                (Number(cate.max) - Number(cate.mean)) * 100,
-              ],
-              arrayminus: [
-                (Number(cate.mean) - Number(cate.min)) * 100,
-              ],
-            },
-            name: "Mean and min–max range",
-            hovertemplate:
-              "Mean CATE: %{x:.4f} pp<extra></extra>",
-          },
-        ]
-      : [];
+  // --------------------------------------------------
+  // CATE summary min-max range trace
+  // --------------------------------------------------
 
-  const individualUncertaintyTrace = individualIntervals.length
+  const cateRangeTrace = validCate
     ? [
         {
           type: "scatter",
           mode: "markers",
-          x: individualIntervals.map((item) =>
-            Number(item.effect ?? item.cate) * 100
-          ),
-          y: individualIntervals.map(
-            (_, index) => `Observation ${index + 1}`
-          ),
-          marker: { size: 7 },
+          x: [Number(cate.mean) * 100],
+          y: ["CATE summary range"],
+          marker: { size: 13 },
           error_x: {
             type: "data",
             symmetric: false,
-            array: individualIntervals.map(
-              (item) =>
-                (Number(item.upper ?? item.upperBound) -
-                  Number(item.effect ?? item.cate)) *
-                100
-            ),
-            arrayminus: individualIntervals.map(
-              (item) =>
-                (Number(item.effect ?? item.cate) -
-                  Number(item.lower ?? item.lowerBound)) *
-                100
-            ),
+            array: [
+              (Number(cate.max) - Number(cate.mean)) * 100,
+            ],
+            arrayminus: [
+              (Number(cate.mean) - Number(cate.min)) * 100,
+            ],
           },
-          name: "Individual confidence intervals",
+          name: "Mean and min-max range",
+          hovertemplate:
+            "Mean CATE: %{x:.4f} pp<extra></extra>",
         },
       ]
     : [];
+
+  // --------------------------------------------------
+  // Individual confidence interval trace
+  // Correct CSV fields are used here:
+  // cate_ci_lower and cate_ci_upper
+  // --------------------------------------------------
+
+  const individualUncertaintyTrace = intervalSample.length
+    ? [
+        {
+          type: "scatter",
+          mode: "markers",
+          x: intervalSample.map((item) => item.cate * 100),
+          y: intervalSample.map(
+            (item) => `Observation ${item.observation_id}`
+          ),
+          marker: { size: 6 },
+          error_x: {
+            type: "data",
+            symmetric: false,
+            array: intervalSample.map(
+              (item) =>
+                (item.cate_ci_upper - item.cate) * 100
+            ),
+            arrayminus: intervalSample.map(
+              (item) =>
+                (item.cate - item.cate_ci_lower) * 100
+            ),
+          },
+          name: "Individual confidence intervals",
+          hovertemplate:
+            "CATE: %{x:.4f} pp<br>%{y}<extra></extra>",
+        },
+      ]
+    : [];
+
+  // --------------------------------------------------
+  // Common Plotly configuration
+  // --------------------------------------------------
+
+  const plotConfig = {
+    responsive: true,
+    displayModeBar: false,
+  };
+
+  // --------------------------------------------------
+  // Dashboard UI
+  // --------------------------------------------------
 
   return (
     <section className="treatment-results">
@@ -176,6 +346,8 @@ function TreatmentEffectResults({ results = null }) {
         </span>
       </div>
 
+      {/* Existing ATE and DML metrics */}
+
       <div className="stats-grid">
         {metrics.map((metric) => (
           <div className="stat-card" key={metric.label}>
@@ -186,6 +358,8 @@ function TreatmentEffectResults({ results = null }) {
         ))}
       </div>
 
+      {/* Existing CATE Summary */}
+
       <div className="day11-section">
         <div className="day11-heading">
           <div>
@@ -195,6 +369,7 @@ function TreatmentEffectResults({ results = null }) {
               effects.
             </p>
           </div>
+
           <span className="chart-tag">
             Actual summary statistics
           </span>
@@ -224,7 +399,7 @@ function TreatmentEffectResults({ results = null }) {
                 yaxis: { automargin: true },
                 showlegend: false,
               }}
-              config={{ responsive: true, displayModeBar: false }}
+              config={plotConfig}
               useResizeHandler
               style={{ width: "100%" }}
             />
@@ -242,95 +417,153 @@ function TreatmentEffectResults({ results = null }) {
         )}
       </div>
 
+      {/* Individual Treatment Effect Distribution */}
+
       <div className="day11-section">
         <div className="day11-heading">
           <div>
             <h3>Treatment Effect Distribution</h3>
             <p>
-              Distribution of individual estimated treatment effects.
+              Distribution of all individual estimated treatment effects.
             </p>
           </div>
+
           <span className="chart-tag">
-            {actualEffects.length
-              ? "Individual model estimates"
-              : "Awaiting individual CATE data"}
+            {csvLoading
+              ? "Loading individual CATE data"
+              : csvError
+                ? "CSV loading error"
+                : `${actualEffects.length.toLocaleString("en-IN")} individual estimates`}
           </span>
         </div>
 
-        {actualEffects.length > 0 ? (
-          <Plot
-            data={[
-              {
-                x: actualEffects.map((value) => value * 100),
-                type: "histogram",
-                nbinsx: 30,
-                name: "Individual CATE",
-                hovertemplate:
-                  "CATE: %{x:.4f} pp<br>Frequency: %{y}<extra></extra>",
-              },
-            ]}
-            layout={{
-              autosize: true,
-              height: 330,
-              margin: { l: 55, r: 25, t: 20, b: 55 },
-              xaxis: {
-                title: "Individual CATE (percentage points)",
-                zeroline: true,
-              },
-              yaxis: { title: "Frequency" },
-              showlegend: false,
-            }}
-            config={{ responsive: true, displayModeBar: false }}
-            useResizeHandler
-            style={{ width: "100%" }}
-          />
+        {csvLoading ? (
+          <div className="chart-empty">
+            Loading individual CATE data...
+          </div>
+        ) : csvError ? (
+          <div className="chart-empty">{csvError}</div>
+        ) : actualEffects.length > 0 ? (
+          <>
+            <Plot
+              data={[
+                {
+                  x: actualEffects.map((value) => value * 100),
+                  type: "histogram",
+                  nbinsx: 30,
+                  name: "Individual CATE",
+                  hovertemplate:
+                    "CATE: %{x:.4f} pp<br>Frequency: %{y}<extra></extra>",
+                },
+              ]}
+              layout={{
+                autosize: true,
+                height: 330,
+                margin: { l: 55, r: 25, t: 20, b: 55 },
+                xaxis: {
+                  title: "Individual CATE (percentage points)",
+                  zeroline: true,
+                },
+                yaxis: { title: "Frequency" },
+                showlegend: false,
+              }}
+              config={plotConfig}
+              useResizeHandler
+              style={{ width: "100%" }}
+            />
+
+            <p className="dml-caption">
+              This histogram uses all{" "}
+              {actualEffects.length.toLocaleString("en-IN")}{" "}
+              individual CATE estimates exported by Section A.
+            </p>
+          </>
         ) : (
           <div className="chart-empty">
-            Individual CATE values are not exported yet. The actual
-            distribution will appear after the Section A CSV is received.
+            No valid individual CATE observations were found.
           </div>
         )}
       </div>
 
+      {/* Individual Effect Uncertainty */}
+
       <div className="day11-section">
         <div className="day11-heading">
           <div>
-            <h3>Effect Uncertainty</h3>
+            <h3>Individual Effect Uncertainty</h3>
+            <p>
+              Individual CATE estimates with their reported 95% confidence
+              intervals.
+            </p>
+          </div>
+
+          <span className="chart-tag">
+            {csvLoading
+              ? "Loading individual intervals"
+              : individualIntervals.length
+                ? "Individual 95% CI"
+                : "Individual intervals unavailable"}
+          </span>
+        </div>
+
+        {csvLoading ? (
+          <div className="chart-empty">
+            Loading individual confidence intervals...
+          </div>
+        ) : individualUncertaintyTrace.length > 0 ? (
+          <>
+            <Plot
+              data={individualUncertaintyTrace}
+              layout={{
+                autosize: true,
+                height: 550,
+                margin: { l: 150, r: 30, t: 20, b: 55 },
+                xaxis: {
+                  title: "Estimated treatment effect (pp)",
+                  zeroline: true,
+                },
+                yaxis: { automargin: true },
+                showlegend: false,
+              }}
+              config={plotConfig}
+              useResizeHandler
+              style={{ width: "100%" }}
+            />
+
+            <p className="dml-caption">
+              Showing {intervalSample.length} representative observations
+              from the{" "}
+              {individualIntervals.length.toLocaleString("en-IN")}{" "}
+              available individual estimates. Error bars represent the
+              individual reported confidence intervals.
+            </p>
+          </>
+        ) : csvError ? (
+          <div className="chart-empty">{csvError}</div>
+        ) : (
+          <div className="chart-empty">
+            Individual confidence intervals are not available.
+          </div>
+        )}
+      </div>
+
+      {/* Existing ATE Uncertainty - kept visible separately */}
+
+      <div className="day11-section">
+        <div className="day11-heading">
+          <div>
+            <h3>Average Treatment Effect Uncertainty</h3>
             <p>
               Confidence interval for the average treatment effect.
             </p>
           </div>
+
           <span className="chart-tag">
-            {individualUncertaintyTrace.length
-              ? "Individual intervals available"
-              : validAteInterval
-                ? "Actual ATE 95% CI"
-                : "Awaiting confidence interval"}
+            Actual ATE 95% CI
           </span>
         </div>
 
-        {individualUncertaintyTrace.length > 0 ? (
-          <Plot
-            data={individualUncertaintyTrace}
-            layout={{
-              autosize: true,
-              height: Math.max(
-                300,
-                individualUncertaintyTrace[0].y.length * 25
-              ),
-              margin: { l: 140, r: 30, t: 20, b: 55 },
-              xaxis: {
-                title: "Estimated treatment effect (pp)",
-                zeroline: true,
-              },
-              yaxis: { automargin: true },
-              showlegend: false,
-            }}
-            config={{ responsive: true, displayModeBar: false }}
-            useResizeHandler
-            style={{ width: "100%" }}
-          />
-        ) : ateUncertaintyTrace.length > 0 ? (
+        {ateUncertaintyTrace.length > 0 ? (
           <Plot
             data={ateUncertaintyTrace}
             layout={{
@@ -344,26 +577,132 @@ function TreatmentEffectResults({ results = null }) {
               yaxis: { automargin: true },
               showlegend: false,
             }}
-            config={{ responsive: true, displayModeBar: false }}
+            config={plotConfig}
             useResizeHandler
             style={{ width: "100%" }}
           />
         ) : (
           <div className="chart-empty">
-            Valid confidence interval data is not available.
+            Valid ATE confidence interval data is not available.
           </div>
         )}
       </div>
 
+      {/* Individual Standard Error Distribution */}
+
+      <div className="day11-section">
+        <div className="day11-heading">
+          <div>
+            <h3>Standard Error Distribution</h3>
+            <p>
+              Distribution of individual CATE standard errors.
+            </p>
+          </div>
+
+          <span className="chart-tag">
+            {cateRows.length
+              ? "Actual individual standard errors"
+              : "Awaiting data"}
+          </span>
+        </div>
+
+        {cateRows.length > 0 ? (
+          <Plot
+            data={[
+              {
+                x: standardErrors,
+                type: "histogram",
+                nbinsx: 30,
+                name: "CATE Standard Error",
+                hovertemplate:
+                  "Standard error: %{x:.4f} pp<br>Frequency: %{y}<extra></extra>",
+              },
+            ]}
+            layout={{
+              autosize: true,
+              height: 330,
+              margin: { l: 55, r: 25, t: 20, b: 55 },
+              xaxis: {
+                title: "Standard error (percentage points)",
+              },
+              yaxis: { title: "Frequency" },
+              showlegend: false,
+            }}
+            config={plotConfig}
+            useResizeHandler
+            style={{ width: "100%" }}
+          />
+        ) : (
+          <div className="chart-empty">
+            Standard error data is not available.
+          </div>
+        )}
+      </div>
+
+      {/* Individual Confidence Interval Width Distribution */}
+
+      <div className="day11-section">
+        <div className="day11-heading">
+          <div>
+            <h3>Confidence Interval Width Distribution</h3>
+            <p>
+              Distribution of the widths of individual reported confidence
+              intervals.
+            </p>
+          </div>
+
+          <span className="chart-tag">
+            {cateRows.length
+              ? "Actual individual CI widths"
+              : "Awaiting data"}
+          </span>
+        </div>
+
+        {cateRows.length > 0 ? (
+          <Plot
+            data={[
+              {
+                x: confidenceIntervalWidths,
+                type: "histogram",
+                nbinsx: 30,
+                name: "Confidence Interval Width",
+                hovertemplate:
+                  "CI width: %{x:.4f} pp<br>Frequency: %{y}<extra></extra>",
+              },
+            ]}
+            layout={{
+              autosize: true,
+              height: 330,
+              margin: { l: 55, r: 25, t: 20, b: 55 },
+              xaxis: {
+                title: "Confidence interval width (pp)",
+              },
+              yaxis: { title: "Frequency" },
+              showlegend: false,
+            }}
+            config={plotConfig}
+            useResizeHandler
+            style={{ width: "100%" }}
+          />
+        ) : (
+          <div className="chart-empty">
+            Confidence interval width data is not available.
+          </div>
+        )}
+      </div>
+
+      {/* Existing Interpretation Limitation */}
+
       <div className="demo-warning">
         <strong>Interpretation limitation:</strong> This experiment estimates
         the effect of Mens E-Mail versus No E-Mail, not the effect of a
-        product discount. The available CATE values are summary statistics;
-        individual distribution and individual confidence intervals require
-        additional Section A outputs.
+        product discount. Individual CATE estimates, standard errors and
+        their reported confidence intervals are loaded from the Section A
+        CSV export.
       </div>
     </section>
   );
 }
 
 export default TreatmentEffectResults;
+   

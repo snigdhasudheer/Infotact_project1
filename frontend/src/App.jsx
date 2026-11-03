@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard" },
   { id: "dataset-eda", label: "Dataset & EDA" },
   { id: "causal-analysis", label: "Causal Analysis" },
+  { id: "treatment-effects", label: "Treatment Effects" },
   { id: "recommendations", label: "Recommendations" },
   { id: "budget-optimization", label: "Budget Optimization" },
   { id: "team-activity", label: "Team Activity" },
@@ -42,18 +43,10 @@ function App() {
   const [activeSection, setActiveSection] = useState("dashboard");
 
   function navigateToSection(sectionId) {
-    const section = document.getElementById(sectionId);
-
-    if (!section) {
-      console.error(`Navigation target not found: ${sectionId}`);
-      return;
-    }
-
     setActiveSection(sectionId);
-
-    section.scrollIntoView({
+    window.scrollTo({
+      top: 0,
       behavior: "smooth",
-      block: "start",
     });
   }
 
@@ -136,8 +129,17 @@ function App() {
 
   return (
     <div className="dashboard">
+      {/* Sidebar */}
       <aside className="sidebar">
-        <h2>EconoCausal</h2>
+        <div className="sidebar-brand">
+          <div className="brand-icon">EC</div>
+          <div>
+            <h2>EconoCausal</h2>
+            <span>Analytics Platform</span>
+          </div>
+        </div>
+
+        <p className="sidebar-label">MAIN MENU</p>
 
         <nav
           className="sidebar-nav"
@@ -155,6 +157,7 @@ function App() {
                 activeSection === item.id ? "page" : undefined
               }
             >
+              <span className="nav-indicator" />
               {item.label}
             </button>
           ))}
@@ -163,60 +166,182 @@ function App() {
         <div className="sidebar-footer">
           <span className="status-dot" />
           GitHub integration
+          <small>Connected project repository</small>
         </div>
       </aside>
 
-      <main className="main-content">
+      {/* Main content */}
+      <main
+        className="main-content"
+        data-active-section={activeSection}
+      >
+        {/* Top header */}
         <header className="topbar">
-          <div>
-            <h1>EconoCausal Dashboard</h1>
+          <div className="topbar-title">
+            <span className="eyebrow">ECONOCAUSAL PROJECT</span>
+            <h1>
+              {activeSection === "dashboard"
+                ? "Project Overview"
+                : NAV_ITEMS.find(
+                    (item) => item.id === activeSection
+                  )?.label || "Project Overview"}
+            </h1>
             <p>Dynamic Pricing via Double Machine Learning</p>
           </div>
 
-          <a
-            className="github-link"
-            href={REPO_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open GitHub ↗
-          </a>
+          <div className="topbar-actions">
+            {activeSection !== "dashboard" && (
+              <button
+                type="button"
+                className="back-dashboard-button"
+                onClick={() => navigateToSection("dashboard")}
+              >
+                ← Back to Dashboard
+              </button>
+            )}
+
+            <a
+              className="github-link"
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open GitHub ↗
+            </a>
+          </div>
         </header>
 
         {/* Dashboard overview */}
         <section className="stats-grid" id="dashboard">
           <div className="stat-card">
+            <div className="stat-card-top">
+              <span className="stat-icon blue">▤</span>
+              <span className="stat-tag">DATA</span>
+            </div>
             <p>Dataset Overview</p>
-            <h2>In Progress</h2>
-            <span>Review branch and merge status</span>
+            <h2>Integrated</h2>
+            <span>Hillstrom and Online Retail</span>
           </div>
 
-
           <div className="stat-card">
+            <div className="stat-card-top">
+              <span className="stat-icon purple">⌁</span>
+              <span className="stat-tag">DML</span>
+            </div>
             <p>Causal Analysis</p>
-            <h2>Results Integrated</h2>
-            <span>Hillstrom email-treatment DML results</span>
+            <h2>Integrated</h2>
+            <span>Actual Hillstrom email-treatment results</span>
           </div>
 
-
-
           <div className="stat-card">
+            <div className="stat-card-top">
+              <span className="stat-icon orange">◈</span>
+              <span className="stat-tag">BUDGET</span>
+            </div>
             <p>Budget Optimizer</p>
-            <h2>Pending</h2>
-            <span>Awaiting causal estimates</span>
+            <h2>Planned</h2>
+            <span>Pending validated budget analysis</span>
           </div>
 
           <div className="stat-card">
+            <div className="stat-card-top">
+              <span className="stat-icon green">⌘</span>
+              <span className="stat-tag">GITHUB</span>
+            </div>
             <p>GitHub Commits</p>
             <h2>{commits.length}</h2>
             <span>Latest commits fetched from main</span>
           </div>
         </section>
 
-        {/* Project roadmap and GitHub activity */}
+        {/* Clickable module overview */}
+        <section className="module-section" id="module-overview">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">EXPLORE PROJECT</span>
+              <h2>Project Modules</h2>
+              <p>Select a module to explore its detailed analysis.</p>
+            </div>
+          </div>
+
+          <div className="module-grid">
+            <button
+              type="button"
+              className="module-card"
+              onClick={() => navigateToSection("dataset-eda")}
+            >
+              <span className="module-icon blue">▤</span>
+              <strong>Dataset & EDA</strong>
+              <small>Upload, data quality, baseline metrics and charts.</small>
+              <span className="module-link">Explore module →</span>
+            </button>
+
+            <button
+              type="button"
+              className="module-card"
+              onClick={() => navigateToSection("causal-analysis")}
+            >
+              <span className="module-icon purple">⌁</span>
+              <strong>Causal Analysis</strong>
+              <small>DML estimation and causal assumptions audit.</small>
+              <span className="module-link">Explore module →</span>
+            </button>
+
+            <button
+              type="button"
+              className="module-card"
+              onClick={() => navigateToSection("treatment-effects")}
+            >
+              <span className="module-icon green">⌁</span>
+              <strong>Treatment Effects</strong>
+              <small>ATE, CATE, uncertainty, uplift and Qini analysis.</small>
+              <span className="module-link">Explore module →</span>
+            </button>
+
+            <button
+              type="button"
+              className="module-card"
+              onClick={() => navigateToSection("recommendations")}
+            >
+              <span className="module-icon orange">✧</span>
+              <strong>Recommendations</strong>
+              <small>Business insights and analytical findings.</small>
+              <span className="module-link">Explore module →</span>
+            </button>
+
+            <button
+              type="button"
+              className="module-card"
+              onClick={() => navigateToSection("budget-optimization")}
+            >
+              <span className="module-icon teal">◈</span>
+              <strong>Budget Optimization</strong>
+              <small>Budget allocation and strategy analysis.</small>
+              <span className="module-link">Explore module →</span>
+            </button>
+
+            <button
+              type="button"
+              className="module-card"
+              onClick={() => navigateToSection("team-activity")}
+            >
+              <span className="module-icon pink">♧</span>
+              <strong>Team Activity</strong>
+              <small>Project roadmap, GitHub commits and pull requests.</small>
+              <span className="module-link">Explore module →</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Team activity: roadmap and GitHub commits */}
         <section className="content-grid" id="team-activity">
           <div className="panel">
-            <h2>Project Roadmap</h2>
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">PROJECT TRACKING</span>
+                <h2>Project Roadmap</h2>
+              </div>
+            </div>
 
             <ul className="roadmap">
               <li>
@@ -234,7 +359,6 @@ function App() {
               <li>
                 <span className="task-status review">Review</span>
                 DML results integrated into dashboard
-                
               </li>
               <li>
                 <span className="task-status pending">Pending</span>
@@ -251,6 +375,7 @@ function App() {
           <div className="panel">
             <div className="panel-heading">
               <div>
+                <span className="eyebrow">REPOSITORY</span>
                 <h2>GitHub Activity</h2>
                 <p>Latest commits from the main branch</p>
               </div>
@@ -321,12 +446,10 @@ function App() {
         </section>
 
         {/* GitHub Pull Requests */}
-        <section
-          className="panel"
-          style={{ marginBottom: "22px" }}
-        >
+        <section className="panel" id="github-prs">
           <div className="panel-heading">
             <div>
+              <span className="eyebrow">COLLABORATION</span>
               <h2>GitHub Pull Requests</h2>
               <p>Review open and merged pull requests</p>
             </div>
@@ -353,16 +476,8 @@ function App() {
           {prLoading && <p>Loading pull requests from GitHub...</p>}
 
           {!prLoading && !prError && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(250px, 1fr))",
-                gap: "24px",
-                marginTop: "20px",
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
+            <div className="pr-grid">
+              <div>
                 <h3>Open Pull Requests ({openPRs.length})</h3>
 
                 {openPRs.length === 0 ? (
@@ -408,7 +523,7 @@ function App() {
                 </a>
               </div>
 
-              <div style={{ minWidth: 0 }}>
+              <div>
                 <h3>Merged Pull Requests ({mergedPRs.length})</h3>
 
                 {mergedPRs.length === 0 ? (
@@ -457,42 +572,46 @@ function App() {
           )}
         </section>
 
-        {/* Dataset and Exploratory Data Analysis */}
-        <section className="panel" id="dataset-eda">
+        {/* Dataset and EDA */}
+        <section className="panel detail-panel" id="dataset-eda">
           <UploadPanel />
           <BaselineMetrics summary={HILLSTROM_BASELINE_SUMMARY} />
           <EDACharts summary={HILLSTROM_BASELINE_SUMMARY} />
         </section>
-        {/* Day 10 - Actual Section A DML Results */}
-        <section className="panel" id="causal-analysis">
+
+        {/* Causal Analysis */}
+        <section className="panel detail-panel" id="causal-analysis">
           <SectionADmlResults />
           <CausalAssumptionsAudit />
         </section>
 
-        {/* Day 11 - Treatment Effect Distribution and Uncertainty */}
-        <section className="panel" id="treatment-effects">
+        {/* Treatment Effects */}
+        <section className="panel detail-panel" id="treatment-effects">
           <TreatmentEffectResults
-  results={{
-    ate: DML_RESULTS.ate,
-    confidenceInterval: [
-      DML_RESULTS.ciLower,
-      DML_RESULTS.ciUpper,
-    ],
-    sampleSize: DML_RESULTS.sampleSize,
-    modelStatus: "Estimated — LinearDML",
-    cateSummary: {
-      mean: DML_RESULTS.meanCate,
-      min: DML_RESULTS.minCate,
-      max: DML_RESULTS.maxCate,
-      std: DML_RESULTS.cateStd,
-    },
-  }}
-/>
+            results={{
+              ate: DML_RESULTS.ate,
+              confidenceInterval: [
+                DML_RESULTS.ciLower,
+                DML_RESULTS.ciUpper,
+              ],
+              sampleSize: DML_RESULTS.sampleSize,
+              modelStatus: "Estimated — LinearDML",
+              cateSummary: {
+                mean: DML_RESULTS.meanCate,
+                min: DML_RESULTS.minCate,
+                max: DML_RESULTS.maxCate,
+                std: DML_RESULTS.cateStd,
+              },
+            }}
+          />
         </section>
 
-
-        {/* Planned recommendations */}
-        <section className="panel" id="recommendations">
+        {/* Recommendations */}
+        <section
+          className="panel detail-panel"
+          id="recommendations"
+        >
+          <span className="eyebrow">BUSINESS INSIGHTS</span>
           <h2>Recommendations</h2>
 
           <p>
@@ -501,12 +620,16 @@ function App() {
           </p>
 
           <div className="chart-placeholder">
-            Recommendations will appear here after analysis
+            Recommendations will appear here after analysis.
           </div>
         </section>
 
-        {/* Planned budget optimization */}
-        <section className="panel" id="budget-optimization">
+        {/* Budget Optimization */}
+        <section
+          className="panel detail-panel"
+          id="budget-optimization"
+        >
+          <span className="eyebrow">ALLOCATION STRATEGY</span>
           <h2>Budget Allocation</h2>
 
           <p>
@@ -515,7 +638,7 @@ function App() {
           </p>
 
           <div className="chart-placeholder">
-            Budget allocation visualization will appear here
+            Budget allocation visualization will appear here.
           </div>
         </section>
 

@@ -196,3 +196,130 @@
     flex-direction: column;
   }
 }
+.audit-status.confirmed {
+  background: #e5f5eb;
+  color: #237343;
+}
+
+.audit-ate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid #dce5f3;
+  border-radius: 9px;
+  background: #f7f9fd;
+}
+
+.audit-ate-card span {
+  color: #68758a;
+  font-size: 12px;
+}
+
+.audit-ate-card strong {
+  color: #263c65;
+  font-size: 27px;
+}
+
+.audit-ate-card small {
+  color: #59667c;
+  font-size: 12px;
+}
+
+.audit-comparison-note {
+  margin-top: 12px !important;
+}
+
+.audit-refutation-heading {
+  margin-top: 24px !important;
+}
+
+.audit-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.audit-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.audit-results-table th,
+.audit-results-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e7ebf2;
+  white-space: nowrap;
+}
+
+.audit-results-table th {
+  color: #263c65;
+  background: #f5f7fb;
+  font-weight: 700;
+}
+
+.audit-results-table td {
+  color: #68758a;
+}
+
+.audit-results-table td:first-child {
+  color: #34445f;
+  font-weight: 600;
+}
+
+.audit-result-interpretations {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.audit-result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #e7ebf2;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.audit-result-item strong {
+  color: #263c65;
+  font-size: 12px;
+}
+
+.audit-result-item span {
+  color: #68758a;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.audit-warning {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #ead9a8;
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+.audit-warning strong {
+  color: #76510b;
+  font-size: 13px;
+}
+
+.audit-warning p {
+  margin: 7px 0 0;
+  color: #725f37;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .audit-result-interpretations {
+    grid-template-columns: 1fr;
+  }
+}

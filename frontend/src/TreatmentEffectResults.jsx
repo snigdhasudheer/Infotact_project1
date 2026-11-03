@@ -178,6 +178,156 @@ function TreatmentEffectResults({ results = null }) {
     (item) =>
       (item.cate_ci_upper - item.cate_ci_lower) * 100
   );
+    // --------------------------------------------------
+  // Day 13: Exploratory Uplift and Qini calculations
+  // --------------------------------------------------
+
+  const rankedRows = [...cateRows].sort(
+    (a, b) => b.cate - a.cate
+  );
+
+  const totalTreated = rankedRows.filter(
+    (row) => row.treatment === 1
+  ).length;
+
+  const totalControl = rankedRows.length - totalTreated;
+
+  const totalTreatedConversions = rankedRows.reduce(
+    (sum, row) =>
+      sum + (row.treatment === 1 ? row.outcome : 0),
+    0
+  );
+
+  const totalControlConversions = rankedRows.reduce(
+    (sum, row) =>
+      sum + (row.treatment === 0 ? row.outcome : 0),
+    0
+  );
+
+  const validUpliftData =
+    rankedRows.length > 0 &&
+    totalTreated > 0 &&
+    totalControl > 0;
+
+  const overallTreatedRate = validUpliftData
+    ? totalTreatedConversions / totalTreated
+    : 0;
+
+  const overallControlRate = validUpliftData
+    ? totalControlConversions / totalControl
+    : 0;
+
+  const overallRateDifference =
+    overallTreatedRate - overallControlRate;
+
+  const upliftPoints = [];
+  const qiniPoints = [];
+
+  if (validUpliftData) {
+    let treatedCount = 0;
+    let controlCount = 0;
+    let treatedConversions = 0;
+    let controlConversions = 0;
+
+    const numberOfGroups = 100;
+
+    for (let i = 0; i < rankedRows.length; i++) {
+      const row = rankedRows[i];
+
+      if (row.treatment === 1) {
+        treatedCount += 1;
+        treatedConversions += row.outcome;
+      } else {
+        controlCount += 1;
+        controlConversions += row.outcome;
+      }
+
+      const isGroupEnd =
+        (i + 1) % Math.ceil(rankedRows.length / numberOfGroups) === 0 ||
+        i === rankedRows.length - 1;
+
+      if (!isGroupEnd) continue;
+
+      if (treatedCount === 0 || controlCount === 0) continue;
+
+      const populationFraction =
+        (i + 1) / rankedRows.length;
+
+      const treatedRate =
+        treatedConversions / treatedCount;
+
+      const controlRate =
+        controlConversions / controlCount;
+
+      const uplift = treatedRate - controlRate;
+
+      const incrementalConversions =
+        treatedConversions -
+        controlConversions * (treatedCount / controlCount);
+
+      upliftPoints.push({
+        x: populationFraction * 100,
+        y: uplift * 100,
+      });
+
+      qiniPoints.push({
+        x: populationFraction * 100,
+        y: incrementalConversions,
+      });
+    }
+  }
+
+  const qiniRandomEndpoint =
+    totalTreatedConversions -
+    totalControlConversions * (totalTreated / totalControl);
+
+  const upliftChartTrace = [
+    {
+      x: [0, ...upliftPoints.map((point) => point.x)],
+      y: [overallRateDifference * 100, ...upliftPoints.map((point) => point.y)],
+      type: "scatter",
+      mode: "lines",
+      name: "Ranked CATE uplift",
+      line: { width: 3 },
+      hovertemplate:
+        "Top %{x:.1f}% customers<br>Uplift: %{y:.4f} pp<extra></extra>",
+    },
+    {
+      x: [0, 100],
+      y: [
+        overallRateDifference * 100,
+        overallRateDifference * 100,
+      ],
+      type: "scatter",
+      mode: "lines",
+      name: "Overall average uplift",
+      line: { dash: "dash" },
+      hoverinfo: "skip",
+    },
+  ];
+
+  const qiniChartTrace = [
+    {
+      x: [0, ...qiniPoints.map((point) => point.x)],
+      y: [0, ...qiniPoints.map((point) => point.y)],
+      type: "scatter",
+      mode: "lines",
+      name: "Ranked CATE Qini",
+      line: { width: 3 },
+      hovertemplate:
+        "Top %{x:.1f}% customers<br>Incremental conversions: %{y:.2f}<extra></extra>",
+    },
+    {
+      x: [0, 100],
+      y: [0, qiniRandomEndpoint],
+      type: "scatter",
+      mode: "lines",
+      name: "Random targeting baseline",
+      line: { dash: "dash" },
+      hovertemplate:
+        "Random baseline<br>Incremental conversions: %{y:.2f}<extra></extra>",
+    },
+  ];
 
   // --------------------------------------------------
   // Existing main metrics
@@ -484,6 +634,79 @@ function TreatmentEffectResults({ results = null }) {
           </div>
         )}
       </div>
+            {/* Day 13: Exploratory Uplift Curve */}
+      <section className="day11-section">
+        <div className="day11-heading">
+          <h3>Uplift Curve</h3>
+          <span className="chart-tag">Day 13 · Exploratory</span>
+        </div>
+
+        <p className="dml-caption">
+          Compares cumulative conversion-rate differences between Mens E-Mail
+          and No E-Mail customers ranked by estimated CATE.
+        </p>
+
+        {validUpliftData && upliftPoints.length > 0 ? (
+          <Plot
+            data={upliftChartTrace}
+            layout={{
+              title: "Cumulative Uplift by CATE Ranking",
+              xaxis: {
+                title: "Top-ranked customers included (%)",
+                range: [0, 100],
+              },
+              yaxis: {
+                title: "Conversion-rate difference (pp)",
+              },
+              autosize: true,
+              margin: { l: 65, r: 25, t: 55, b: 65 },
+              legend: { orientation: "h", y: -0.25 },
+            }}
+            config={plotConfig}
+            useResizeHandler
+            style={{ width: "100%", height: "420px" }}
+          />
+        ) : (
+          <p className="chart-empty">Uplift data is not available.</p>
+        )}
+      </section>
+
+      {/* Day 13: Exploratory Qini Curve */}
+      <section className="day11-section">
+        <div className="day11-heading">
+          <h3>Qini Curve</h3>
+          <span className="chart-tag">Day 13 · Exploratory</span>
+        </div>
+
+        <p className="dml-caption">
+          Shows estimated incremental conversions from CATE-ranked targeting
+          compared with a random-targeting baseline.
+        </p>
+
+        {validUpliftData && qiniPoints.length > 0 ? (
+          <Plot
+            data={qiniChartTrace}
+            layout={{
+              title: "Cumulative Incremental Conversions",
+              xaxis: {
+                title: "Top-ranked customers included (%)",
+                range: [0, 100],
+              },
+              yaxis: {
+                title: "Estimated incremental conversions",
+              },
+              autosize: true,
+              margin: { l: 65, r: 25, t: 55, b: 65 },
+              legend: { orientation: "h", y: -0.25 },
+            }}
+            config={plotConfig}
+            useResizeHandler
+            style={{ width: "100%", height: "420px" }}
+          />
+        ) : (
+          <p className="chart-empty">Qini data is not available.</p>
+        )}
+      </section>
 
       {/* Individual Effect Uncertainty */}
 

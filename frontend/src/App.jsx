@@ -1,3 +1,4 @@
+import Recommendations from "./Recommendations";
 import CausalAssumptionsAudit from "./CausalAssumptionsAudit";
 import { DML_RESULTS } from "./SectionADmlResults";
 import SectionADmlResults from "./SectionADmlResults";
@@ -605,24 +606,15 @@ function App() {
             }}
           />
         </section>
-
         {/* Recommendations */}
-        <section
-          className="panel detail-panel"
-          id="recommendations"
-        >
-          <span className="eyebrow">BUSINESS INSIGHTS</span>
-          <h2>Recommendations</h2>
+<section
+  className="panel detail-panel"
+  id="recommendations"
+>
+  <Recommendations />
+</section>
 
-          <p>
-            Recommendations will be developed after validating the
-            dataset and causal analysis results.
-          </p>
 
-          <div className="chart-placeholder">
-            Recommendations will appear here after analysis.
-          </div>
-        </section>
 
         {/* Budget Optimization */}
         <section

@@ -1,0 +1,155 @@
+.recommendations-container {
+  width: 100%;
+}
+
+.recommendation-intro {
+  margin-bottom: 22px;
+}
+
+.recommendation-intro h2 {
+  margin: 8px 0;
+}
+
+.recommendation-intro p {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.recommendation-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.recommendation-stat {
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.recommendation-stat span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.recommendation-stat strong {
+  display: block;
+  margin-top: 8px;
+  color: #172554;
+  font-size: 24px;
+}
+
+.recommendation-rule {
+  padding: 16px;
+  margin-bottom: 22px;
+  background: #f1f5f9;
+  border-left: 3px solid #2563eb;
+  border-radius: 8px;
+}
+
+.recommendation-rule p {
+  margin: 7px 0 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.recommendation-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recommendation-table-heading h3 {
+  margin: 0;
+}
+
+.recommendation-table-heading span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.recommendation-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.recommendation-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.recommendation-table th,
+.recommendation-table td {
+  padding: 13px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.recommendation-table th {
+  color: #475569;
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+.recommendation-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.recommendation-uplift {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.priority-label {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.priority-high {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.priority-review {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.recommendation-disclaimer {
+  margin-top: 18px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.recommendation-error {
+  padding: 16px;
+  color: #991b1b;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+  .recommendation-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-table-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

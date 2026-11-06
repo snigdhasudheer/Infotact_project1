@@ -1,3 +1,4 @@
+import BudgetOptimization from "./BudgetOptimization";
 import Recommendations from "./Recommendations";
 import CausalAssumptionsAudit from "./CausalAssumptionsAudit";
 import { DML_RESULTS } from "./SectionADmlResults";
@@ -616,23 +617,8 @@ function App() {
 
 
 
-        {/* Budget Optimization */}
-        <section
-          className="panel detail-panel"
-          id="budget-optimization"
-        >
-          <span className="eyebrow">ALLOCATION STRATEGY</span>
-          <h2>Budget Allocation</h2>
-
-          <p>
-            Planned: compare budget allocation strategies after
-            validating the causal estimates.
-          </p>
-
-          <div className="chart-placeholder">
-            Budget allocation visualization will appear here.
-          </div>
-        </section>
+{/* Budget Optimization */}
+<BudgetOptimization />
 
         <footer className="dashboard-footer">
           EconoCausal · GitHub-powered activity · Branch: main

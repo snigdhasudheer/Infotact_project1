@@ -15,7 +15,7 @@ function BudgetOptimization() {
   const [budget, setBudget] = useState("50000");
   const [data, setData] = useState(null);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const fetchAllocation = async (event) => {
@@ -23,8 +23,8 @@ function BudgetOptimization() {
 
     const amount = Number(budget);
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setError("Please enter a valid budget.");
+    if (!Number.isFinite(amount) || amount < 10000 || amount > 200000) {
+      setError("Please enter a budget between ₹10,000 and ₹2,00,000.");
       return;
     }
 
@@ -36,18 +36,33 @@ function BudgetOptimization() {
         `${API_URL}?budget=${encodeURIComponent(amount)}`
       );
 
-      const result = await response.json();
+      let result;
+
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error(
+          "The server returned an invalid response. Please try again."
+        );
+      }
 
       if (!response.ok) {
         throw new Error(
-          result.detail || "Unable to calculate budget allocation."
+          result.detail || "Unable to calculate budget allocation. Please try again."
+        );
+      }
+
+      if (!Array.isArray(result.products)) {
+        throw new Error(
+          "Invalid response received from the server. Please try again."
         );
       }
 
       setData(result);
     } catch (err) {
       setError(
-        err.message || "Backend connection failed. Check whether FastAPI is running."
+        err.message ||
+          "Backend connection failed. Please check whether FastAPI is running."
       );
     } finally {
       setLoading(false);
@@ -62,7 +77,9 @@ function BudgetOptimization() {
     if (!data?.products) return [];
 
     return data.products.filter((item) =>
-      item.product.toLowerCase().includes(search.toLowerCase())
+      String(item.product || "")
+        .toLowerCase()
+        .includes(search.toLowerCase())
     );
   }, [data, search]);
 
@@ -91,7 +108,13 @@ function BudgetOptimization() {
           </p>
         </div>
 
-        <span className="budget-status">API Connected</span>
+        <span
+          className={`budget-status ${
+            error ? "is-error" : loading ? "is-loading" : "is-connected"
+          }`}
+        >
+          {error ? "API Error" : loading ? "Connecting..." : "API Connected"}
+        </span>
       </div>
 
       <form className="budget-input-card" onSubmit={fetchAllocation}>
@@ -117,13 +140,36 @@ function BudgetOptimization() {
         </button>
       </form>
 
-      {error && (
-        <div className="budget-error" role="alert">
-          {error}
+      {loading && (
+        <div className="budget-loading" role="status" aria-live="polite">
+          Calculating product-wise budget allocation. Please wait...
         </div>
       )}
 
-      {data && (
+      {error && (
+        <div className="budget-error" role="alert">
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => fetchAllocation()}
+            disabled={loading}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {data && data.products.length === 0 && !loading && (
+        <div className="budget-empty" role="status">
+          <h3>No allocation data available</h3>
+          <p>
+            No products were returned for this budget. Please check the
+            dataset or try calculating again.
+          </p>
+        </div>
+      )}
+
+      {data && data.products.length > 0 && (
         <>
           <div className="budget-summary-grid">
             <div className="budget-stat">
@@ -235,7 +281,9 @@ function BudgetOptimization() {
 
                   {filteredProducts.length === 0 && (
                     <tr>
-                      <td colSpan="6">No matching products found.</td>
+                      <td colSpan="6">
+                        No matching products found. Try another search.
+                      </td>
                     </tr>
                   )}
                 </tbody>

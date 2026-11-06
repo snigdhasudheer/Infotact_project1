@@ -1,10 +1,11 @@
 
+
 import io
 import tempfile
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
@@ -308,4 +309,187 @@ causal-inference design and validated analysis.
         ) from exc
     finally:
         await file.close()
+
+@app.get("/api/budget-allocation")
+def get_budget_allocation(
+    budget: float = Query(default=50000, gt=0)
+):
+    """Generate a proportional budget allocation scenario."""
+
+    csv_path = Path(__file__).resolve().parent / "budget_optimization_results.csv"
+
+    if not csv_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Budget optimization CSV was not found."
+        )
+
+    try:
+        df = pd.read_csv(csv_path)
+
+        required_columns = {
+            "Description",
+            "total_revenue",
+            "transaction_count",
+            "allocation_weight",
+            "allocated_budget",
+        }
+
+        missing = required_columns - set(df.columns)
+
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing CSV columns: {', '.join(sorted(missing))}"
+            )
+
+        if df.empty:
+            raise HTTPException(
+                status_code=400,
+                detail="Budget allocation dataset is empty."
+            )
+
+        weights = pd.to_numeric(
+            df["allocation_weight"], errors="coerce"
+        ).fillna(0).tolist()
+
+        if any(weight < 0 for weight in weights) or sum(weights) <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Allocation weights must be non-negative with a positive total."
+            )
+
+        product_count = len(df)
+        minimum_per_product = 100
+        maximum_per_product = 2000
+
+        minimum_budget = product_count * minimum_per_product
+        maximum_budget = product_count * maximum_per_product
+
+        if not minimum_budget <= budget <= maximum_budget:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Budget must be between ₹{minimum_budget:,.0f} "
+                    f"and ₹{maximum_budget:,.0f} for {product_count} products."
+                )
+            )
+
+        # Capped proportional allocation.
+        allocations = [None] * product_count
+        active = set(range(product_count))
+        remaining_budget = float(budget)
+
+        while active:
+            active_weight = sum(weights[i] for i in active)
+
+            if active_weight <= 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unable to distribute the remaining budget."
+                )
+
+            proposed = {
+                i: remaining_budget * weights[i] / active_weight
+                for i in active
+            }
+
+            below_minimum = [
+                i for i in active
+                if proposed[i] < minimum_per_product
+            ]
+
+            above_maximum = [
+                i for i in active
+                if proposed[i] > maximum_per_product
+            ]
+
+            if not below_minimum and not above_maximum:
+                for i in active:
+                    allocations[i] = proposed[i]
+                break
+
+            for i in below_minimum:
+                allocations[i] = float(minimum_per_product)
+                remaining_budget -= minimum_per_product
+                active.remove(i)
+
+            for i in above_maximum:
+                if i in active:
+                    allocations[i] = float(maximum_per_product)
+                    remaining_budget -= maximum_per_product
+                    active.remove(i)
+
+        # Round to paise and reconcile the small rounding difference.
+        allocations = [round(value, 2) for value in allocations]
+        difference = round(float(budget) - sum(allocations), 2)
+
+        if difference != 0:
+            for i in range(product_count):
+                if difference > 0:
+                    adjustment = min(
+                        difference,
+                        round(maximum_per_product - allocations[i], 2)
+                    )
+                else:
+                    adjustment = -min(
+                        abs(difference),
+                        round(allocations[i] - minimum_per_product, 2)
+                    )
+
+                allocations[i] = round(allocations[i] + adjustment, 2)
+                difference = round(difference - adjustment, 2)
+
+                if difference == 0:
+                    break
+
+        df["scenario_allocation"] = allocations
+        df["scenario_share"] = (
+            df["scenario_allocation"] / float(budget)
+        )
+
+        products = []
+
+        for _, row in df.iterrows():
+            products.append({
+                "product": str(row["Description"]),
+                "historical_revenue": round(
+                    float(row["total_revenue"]), 2
+                ),
+                "transactions": int(row["transaction_count"]),
+                "allocation_weight": round(
+                    float(row["allocation_weight"]), 6
+                ),
+                "current_allocation": round(
+                    float(row["allocated_budget"]), 2
+                ),
+                "scenario_allocation": round(
+                    float(row["scenario_allocation"]), 2
+                ),
+                "scenario_share": round(
+                    float(row["scenario_share"]), 6
+                ),
+            })
+
+        return {
+            "budget": round(float(budget), 2),
+            "product_count": product_count,
+            "minimum_per_product": minimum_per_product,
+            "maximum_per_product": maximum_per_product,
+            "total_allocated": round(sum(allocations), 2),
+            "allocation_method": "Capped proportional allocation",
+            "interpretation": (
+                "Historical-revenue-based allocation scenario. "
+                "This is not a causal ROI estimate."
+            ),
+            "products": products,
+        }
+
+    except HTTPException:
+        raise
+    except (ValueError, TypeError, KeyError) as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unable to calculate budget allocation: {exc}"
+        ) from exc
 

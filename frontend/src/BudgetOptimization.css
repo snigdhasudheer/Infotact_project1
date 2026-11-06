@@ -1,0 +1,250 @@
+
+.budget-optimization {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.budget-heading,
+.budget-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.budget-heading h2 {
+  margin: 8px 0;
+}
+
+.budget-heading p,
+.budget-section-heading p {
+  color: var(--muted, #7c8798);
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.budget-status {
+  background: #e8f7ee;
+  color: #16834a;
+  padding: 8px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.budget-input-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--border, #e5e9f0);
+  border-radius: 14px;
+  background: var(--card-bg, #ffffff);
+}
+
+.budget-input-card > div {
+  flex: 1;
+  min-width: 220px;
+}
+
+.budget-input-card label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+
+.budget-input-card input,
+.budget-search {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border, #dce1e9);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+.budget-input-card small {
+  display: block;
+  color: var(--muted, #7c8798);
+  margin-top: 7px;
+}
+
+.budget-input-card button {
+  border: 0;
+  border-radius: 8px;
+  background: #2459d3;
+  color: white;
+  padding: 12px 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.budget-input-card button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.budget-error {
+  padding: 13px 16px;
+  background: #fff0f0;
+  color: #b42318;
+  border: 1px solid #f4caca;
+  border-radius: 9px;
+}
+
+.budget-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.budget-stat,
+.budget-section-card {
+  padding: 19px;
+  border: 1px solid var(--border, #e5e9f0);
+  border-radius: 13px;
+  background: var(--card-bg, #fff);
+  min-width: 0;
+}
+
+.budget-stat span {
+  display: block;
+  color: var(--muted, #7c8798);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.budget-stat strong {
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+.budget-stat .method-value {
+  font-size: 14px;
+}
+
+.budget-section-card h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.allocation-bars {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.allocation-bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+  font-size: 13px;
+}
+
+.allocation-bar-label span {
+  overflow-wrap: anywhere;
+}
+
+.allocation-bar-label strong {
+  white-space: nowrap;
+}
+
+.allocation-track {
+  height: 9px;
+  border-radius: 20px;
+  background: #edf0f5;
+  overflow: hidden;
+}
+
+.allocation-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: #3974e8;
+}
+
+.budget-search {
+  max-width: 240px;
+}
+
+.budget-table-wrapper {
+  overflow-x: auto;
+  margin-top: 18px;
+}
+
+.budget-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.budget-table th,
+.budget-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e9edf2);
+}
+
+.budget-table th {
+  background: var(--table-header-bg, #f5f7fb);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.budget-table td:first-child {
+  min-width: 220px;
+}
+
+.budget-table tbody tr:hover {
+  background: var(--table-hover-bg, #f8faff);
+}
+
+.scenario-amount {
+  font-weight: 700;
+  color: #24764a;
+}
+
+.budget-table-footer {
+  font-size: 12px;
+  color: var(--muted, #7c8798);
+  margin: 12px 0 0;
+}
+
+.budget-note {
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--table-header-bg, #f5f7fb);
+  color: var(--muted, #626e80);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.budget-note strong {
+  color: inherit;
+}
+
+@media (max-width: 900px) {
+  .budget-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .budget-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-input-card button {
+    width: 100%;
+  }
+
+  .budget-search {
+    max-width: 100%;
+  }
+}

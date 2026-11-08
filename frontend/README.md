@@ -1,16 +1,211 @@
-# React + Vite
+# EconoCausal – Frontend Setup and Usage Guide
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## 1. Overview
 
-Currently, two official plugins are available:
+The EconoCausal frontend is an interactive web application developed using React and Vite. It provides a user-friendly interface for exploring datasets, viewing causal inference results, understanding treatment effects, generating recommendations, and exploring budget allocation scenarios.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The frontend communicates with a Python FastAPI backend for dataset validation, reporting, export, and budget allocation.
 
-## React Compiler
+## 2. Technology Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- Vite 8
+- JavaScript (ES Modules)
+- CSS
+- Plotly.js
+- React Plotly
+- Oxlint
 
-## Expanding the Oxlint configuration
+## 3. Prerequisites
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Before running the frontend, ensure the following are installed:
+
+- Node.js (compatible with the installed Vite version)
+- npm
+- Git
+- Python environment for running the backend
+
+## 4. Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/snigdhasudheer/Infotact_project1.git
+```
+
+Navigate to the frontend directory:
+
+```bash
+cd Infotact_project1/frontend
+```
+
+Install the dependencies:
+
+```bash
+npm install
+```
+
+## 5. Running the Frontend
+
+Start the Vite development server:
+
+```bash
+npm run dev
+```
+
+Vite will display the local development URL in the terminal. Open that URL in your browser to access the dashboard.
+
+## 6. Available Commands
+
+| Command           | Description                           |
+| ----------------- | ------------------------------------- |
+| `npm run dev`     | Starts the development server         |
+| `npm run build`   | Creates an optimized production build |
+| `npm run preview` | Previews the production build         |
+| `npm run lint`    | Runs Oxlint code checks               |
+
+The production build is generated in the `dist/` directory.
+
+## 7. Dashboard Navigation and Usage
+
+The application provides the following sections:
+
+### Dashboard
+
+Provides an overview of the EconoCausal project, its analytical components, and project activity.
+
+### Dataset & EDA
+
+- Upload an Excel dataset.
+- Validate the uploaded dataset.
+- Review dataset information and descriptive summaries.
+- Explore available exploratory data analysis charts.
+- Generate dataset reports and product-month exports.
+
+### Causal Analysis
+
+- Explore integrated Double Machine Learning results.
+- Review average treatment effect estimates.
+- Examine treatment-effect distributions and uncertainty visualizations.
+- Review causal assumptions and DoWhy diagnostic results.
+
+### Recommendations
+
+Displays exploratory customer-level analytical outputs based on the available individual CATE data.
+
+### Budget Optimization
+
+Allows users to enter a promotional budget and explore the resulting allocation across products using historical revenue weights.
+
+### Team Activity
+
+Displays project progress and available GitHub activity information.
+
+## 8. Backend Integration
+
+The frontend currently communicates with the FastAPI backend at:
+
+```text
+http://127.0.0.1:8000
+```
+
+Start the backend separately from the project root using the configured Python environment and the project's FastAPI application.
+
+The frontend uses the following backend endpoints:
+
+| Endpoint                    | Method | Purpose                              |
+| --------------------------- | ------ | ------------------------------------ |
+| `/api/upload`               | POST   | Upload and validate an Excel dataset |
+| `/api/export-product-month` | POST   | Export product-month data            |
+| `/api/dataset-report`       | POST   | Generate a dataset report            |
+| `/api/budget-allocation`    | GET    | Calculate budget allocation          |
+| `/api/health`               | GET    | Check backend availability           |
+
+The upload and budget optimization components require the backend to be running.
+
+If the backend is unavailable, check that the FastAPI service is running on port `8000`.
+
+## 9. Public Data Files
+
+The frontend uses the following public file:
+
+```text
+public/
+└── section_a_individual_cate.csv
+```
+
+This file contains individual Conditional Average Treatment Effect (CATE) results generated by the Section A analytical workflow.
+
+It is accessed by the Recommendations and Treatment Effect Results components.
+
+Ensure the CSV file is present in the `public/` directory before running the application.
+
+## 10. Frontend Project Structure
+
+```text
+frontend/
+├── public/
+│   ├── favicon.svg
+│   ├── icons.svg
+│   └── section_a_individual_cate.csv
+├── src/
+│   ├── App.jsx
+│   ├── App.css
+│   ├── main.jsx
+│   ├── index.css
+│   ├── BaselineMetrics.jsx
+│   ├── BudgetOptimization.jsx
+│   ├── CausalAssumptionsAudit.jsx
+│   ├── EDACharts.jsx
+│   ├── Recommendations.jsx
+│   ├── SectionADmlResults.jsx
+│   ├── TreatmentEffectResults.jsx
+│   └── UploadPanel.jsx
+├── index.html
+├── package.json
+├── package-lock.json
+├── vite.config.js
+└── README.md
+```
+
+## 11. Testing and Build Verification
+
+Run the following commands from the frontend directory:
+
+Check code quality:
+
+```bash
+npm run lint
+```
+
+Create the production build:
+
+```bash
+npm run build
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+Verify that the dashboard loads correctly and that backend-dependent features work when the FastAPI service is running.
+
+## 12. Important Notes and Limitations
+
+- The frontend depends on the FastAPI backend for upload, validation, report generation, export, and budget allocation.
+- The individual CATE CSV must be available in the public directory.
+- Budget allocation uses historical revenue weights and should not be interpreted as guaranteed causal ROI or profit.
+- The Hillstrom treatment-effect analysis evaluates email treatment, not a discount treatment.
+- Online Retail analysis is descriptive and should not be interpreted as causal evidence of discount effectiveness.
+
+## 13. Project Repository
+
+GitHub: https://github.com/snigdhasudheer/Infotact_project1
+
+---
+
+**EconoCausal – Dynamic Pricing via Double Machine Learning**
+
+Frontend documentation prepared as part of the Infotact Advanced Data Science & ML Engineering Internship.

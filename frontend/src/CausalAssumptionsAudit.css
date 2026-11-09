@@ -323,3 +323,22 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Dark Intelligence theme */
+.causal-audit { color:#d7e1ee; }
+.causal-audit-heading h2, .audit-assumption h3, .audit-diagnostics h3, .audit-data-context h3, .audit-ate-card strong, .audit-result-item strong { color:#e5edf7; }
+.causal-audit-heading p, .audit-assumption p, .audit-diagnostics > p, .audit-data-context li, .audit-footer-note, .audit-ate-card span, .audit-ate-card small, .audit-results-table td, .audit-result-item span { color:#9aa9bd; }
+.audit-label, .audit-status.pending { background:#29364a; color:#b8c7d9; }
+.audit-notice, .audit-warning { background:#342d20; border-color:#69532c; }
+.audit-notice strong, .audit-warning strong { color:#f2ca79; }
+.audit-notice p, .audit-warning p { color:#d8c394; }
+.audit-assumption, .audit-diagnostics, .audit-data-context, .audit-result-item { background:#151d2b; border-color:#29364a; }
+.audit-status.review { background:#463719; color:#f2ca79; }
+.audit-status.confirmed { background:#153b32; color:#70d6a5; }
+.audit-diagnostic-placeholder { background:#101827; border-color:#40516a; }
+.audit-diagnostic-placeholder strong { color:#c4d1e1; }
+.audit-diagnostic-placeholder span { color:#91a1b7; }
+.audit-data-context strong, .audit-results-table td:first-child { color:#d7e1ee; }
+.audit-ate-card { background:#1d2939; border-color:#35445a; }
+.audit-results-table th, .audit-results-table td { border-color:#29364a; }
+.audit-results-table th { color:#d7e1ee; background:#1d2939; }

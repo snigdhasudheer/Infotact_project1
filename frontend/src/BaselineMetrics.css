@@ -91,3 +91,12 @@
     flex-direction: column;
   }
 }
+
+/* Dark Intelligence theme */
+.baseline-metrics { background:#151d2b; border-color:#29364a; color:#e5edf7; }
+.baseline-heading h2, .baseline-table tbody th { color:#e5edf7; }
+.baseline-heading p, .baseline-note { color:#9aa9bd; }
+.baseline-tag { background:#173b42; color:#65d6c5; }
+.baseline-table th, .baseline-table td { border-color:#29364a; }
+.baseline-table thead th { background:#1d2939; color:#b8c7d9; }
+.baseline-control { background:#153b32; color:#70d6a5; }

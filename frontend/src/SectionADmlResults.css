@@ -1,28 +1,40 @@
+
+/* ==========================================
+   SECTION A — DARK INTELLIGENCE THEME
+========================================== */
+
 .section-a-dml {
   margin: 8px 0 26px;
-  padding: 22px;
-  border: 1px solid #e7ebf2;
-  border-radius: 12px;
-  background: #ffffff;
+  padding: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #17243b, #111a2c);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  color: #edf2ff;
 }
+
+/* Header */
 
 .dml-heading {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .dml-heading h2 {
   margin: 0 0 8px;
-  font-size: 20px;
+  color: #f1f5ff;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
 }
 
 .dml-heading p,
 .dml-caption {
-  color: #718096;
-  line-height: 1.6;
+  color: #a4b1c8;
+  line-height: 1.7;
   font-size: 13px;
 }
 
@@ -32,74 +44,95 @@
 
 .dml-source-tag {
   flex-shrink: 0;
-  padding: 6px 10px;
+  padding: 7px 12px;
   border-radius: 20px;
-  background: #e7f5ed;
-  color: #18794e;
+  background: rgba(54, 214, 192, 0.12);
+  border: 1px solid rgba(54, 214, 192, 0.25);
+  color: #55e2cc;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
+
+/* Metric cards */
 
 .dml-metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .dml-metric-card {
   min-width: 0;
-  padding: 17px;
-  border: 1px solid #e7ebf2;
-  border-radius: 10px;
-  background: #f9fbfe;
+  padding: 19px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #1b2a43, #152137);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.dml-metric-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(54, 214, 192, 0.35);
 }
 
 .dml-metric-card p {
-  margin: 0 0 12px;
-  color: #65738a;
+  margin: 0 0 13px;
+  color: #a8b6ce;
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .dml-metric-card h3 {
-  margin: 0 0 9px;
-  color: #263c65;
-  font-size: 21px;
+  margin: 0 0 10px;
+  color: #5ce2cf;
+  font-size: 23px;
+  font-weight: 750;
   overflow-wrap: anywhere;
 }
 
 .dml-metric-card span {
-  color: #78859a;
+  color: #a1aec4;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
+
+/* Experiment configuration panels */
 
 .dml-panel {
   min-width: 0;
-  padding: 18px;
-  border: 1px solid #e7ebf2;
-  border-radius: 10px;
-  background: #ffffff;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 13px;
+  background: rgba(9, 17, 32, 0.48);
 }
 
 .dml-panel h3 {
-  margin: 0 0 15px;
+  margin: 0 0 17px;
+  color: #e9efff;
   font-size: 16px;
+  font-weight: 700;
 }
 
 .dml-detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 20px;
+  gap: 12px 20px;
 }
 
 .dml-detail-grid p {
   margin: 0;
-  color: #526078;
+  color: #b5c1d5;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
   overflow-wrap: anywhere;
 }
+
+.dml-detail-grid strong {
+  color: #edf2ff;
+}
+
+/* Two-column analysis */
 
 .dml-two-column {
   display: grid;
@@ -108,9 +141,12 @@
   margin-top: 18px;
 }
 
+/* Data tables */
+
 .dml-table-wrap {
   width: 100%;
   overflow-x: auto;
+  border-radius: 9px;
 }
 
 .dml-table {
@@ -122,20 +158,26 @@
 
 .dml-table th,
 .dml-table td {
-  padding: 11px 9px;
-  border-bottom: 1px solid #edf0f5;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.13);
   white-space: nowrap;
 }
 
 .dml-table th {
-  color: #526078;
-  background: #f8fafc;
-  font-weight: 600;
+  color: #5ce2cf;
+  background: rgba(54, 214, 192, 0.08);
+  font-weight: 700;
 }
 
 .dml-table td {
-  color: #35445c;
+  color: #c1cce0;
 }
+
+.dml-table tbody tr:hover {
+  background: rgba(107, 145, 255, 0.07);
+}
+
+/* Notes and captions */
 
 .dml-caption {
   margin: 12px 0 0;
@@ -144,14 +186,16 @@
 
 .dml-methodology-note {
   margin-top: 18px;
-  padding: 15px 17px;
-  border-left: 4px solid #d69e2e;
-  border-radius: 6px;
-  background: #fffaf0;
-  color: #744210;
+  padding: 16px 18px;
+  border-left: 4px solid #f0b65e;
+  border-radius: 8px;
+  background: rgba(240, 182, 94, 0.09);
+  color: #f2d29c;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.8;
 }
+
+/* Responsive layout */
 
 @media (max-width: 1000px) {
   .dml-metrics-grid {
@@ -178,6 +222,16 @@
   }
 
   .dml-panel {
-    padding: 13px;
+    padding: 14px;
+  }
+
+  .dml-metric-card {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dml-metric-card {
+    transition: none;
   }
 }

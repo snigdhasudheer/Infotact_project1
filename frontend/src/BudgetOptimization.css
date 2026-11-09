@@ -248,3 +248,19 @@
     max-width: 100%;
   }
 }
+
+/* Dark Intelligence theme */
+.budget-heading, .budget-section-heading, .budget-input-card, .budget-stat, .budget-section-card { color:#e5edf7; }
+.budget-input-card, .budget-stat, .budget-section-card { background:#151d2b; border-color:#29364a; }
+.budget-input-card input, .budget-search { background:#101827; border-color:#35445a; color:#e5edf7; }
+.budget-input-card input::placeholder, .budget-search::placeholder { color:#8797ad; }
+.budget-status { background:#153b32; color:#70d6a5; }
+.budget-error { background:#3a2028; color:#ff9eaa; border-color:#70404b; }
+.budget-stat span, .budget-heading p, .budget-section-heading p, .budget-input-card small, .budget-table-footer { color:#9aa9bd; }
+.allocation-track { background:#29364a; }
+.allocation-fill { background:linear-gradient(90deg,#18b6a4,#7c6cf0); }
+.budget-table th, .budget-table td { border-color:#29364a; color:#d7e1ee; }
+.budget-table th { background:#1d2939; }
+.budget-table tbody tr:hover { background:#202d40; }
+.scenario-amount { color:#70d6a5; }
+.budget-note { background:#1d2939; color:#b8c7d9; }

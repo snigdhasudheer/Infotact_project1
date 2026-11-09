@@ -153,3 +153,19 @@
     flex-direction: column;
   }
 }
+
+/* Dark Intelligence theme */
+.recommendation-intro p, .recommendation-table-heading span, .recommendation-disclaimer { color:#9aa9bd; }
+.recommendation-summary .recommendation-stat { background:#151d2b; border-color:#29364a; }
+.recommendation-stat span { color:#9aa9bd; }
+.recommendation-stat strong { color:#e5edf7; }
+.recommendation-rule { background:#1d2939; border-left-color:#18b6a4; color:#d7e1ee; }
+.recommendation-rule p { color:#b8c7d9; }
+.recommendation-table-wrapper { border-color:#29364a; }
+.recommendation-table th, .recommendation-table td { border-color:#29364a; color:#d7e1ee; }
+.recommendation-table th { color:#c4d1e1; background:#1d2939; }
+.recommendation-table tbody tr:hover { background:#202d40; }
+.recommendation-uplift { color:#65d6c5; }
+.priority-high { color:#70d6a5; background:#153b32; }
+.priority-review { color:#f2ca79; background:#463719; }
+.recommendation-error { color:#ffadb5; background:#3a2028; }

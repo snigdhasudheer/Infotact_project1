@@ -43,3 +43,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Dark Intelligence theme */
+.eda-description { color:#9aa9bd; }
+.eda-card { background:#151d2b; border-color:#29364a; color:#e5edf7; }
+.eda-card h3 { color:#e5edf7; }
+.eda-empty { background:#101827; border-color:#40516a; color:#9aa9bd; }

@@ -3,6 +3,7 @@
 
 import io
 import unittest
+from unittest.mock import patch
 
 import pandas as pd
 from fastapi.testclient import TestClient
@@ -35,6 +36,16 @@ class TestEconoCausalAPI(unittest.TestCase):
         data.to_excel(buffer, index=False, engine="openpyxl")
         buffer.seek(0)
         return buffer
+
+    def create_budget_data(self):
+        """Create a small valid budget allocation dataset."""
+        return pd.DataFrame({
+            "Description": ["Product A", "Product B"],
+            "total_revenue": [10000.0, 30000.0],
+            "transaction_count": [100, 200],
+            "allocation_weight": [1.0, 3.0],
+            "allocated_budget": [250.0, 750.0],
+        })
 
     def test_health_endpoint(self):
         response = self.client.get("/api/health")
@@ -114,9 +125,7 @@ class TestEconoCausalAPI(unittest.TestCase):
     def test_dataset_report_rejects_csv_file(self):
         response = self.client.post(
             "/api/dataset-report",
-            files={
-                "file": ("data.csv", b"a,b\n1,2", "text/csv")
-            },
+            files={"file": ("data.csv", b"a,b\n1,2", "text/csv")},
         )
 
         self.assertEqual(response.status_code, 400)
@@ -155,6 +164,100 @@ class TestEconoCausalAPI(unittest.TestCase):
         self.assertIn("Columns: 8", report)
         self.assertIn("Validation status: Successful", report)
 
+    # Budget allocation endpoint tests
+
+    def test_budget_allocation_returns_valid_response(self):
+        budget_data = self.create_budget_data()
+
+        with patch("main.Path.exists", return_value=True), \
+             patch("main.pd.read_csv", return_value=budget_data):
+            response = self.client.get(
+                "/api/budget-allocation",
+                params={"budget": 1000},
+            )
+
+        self.assertEqual(response.status_code, 200)
+
+        result = response.json()
+        self.assertEqual(result["budget"], 1000.0)
+        self.assertEqual(result["product_count"], 2)
+        self.assertEqual(result["total_allocated"], 1000.0)
+        self.assertEqual(
+            result["allocation_method"],
+            "Capped proportional allocation",
+        )
+        self.assertEqual(len(result["products"]), 2)
+
+        self.assertAlmostEqual(
+            result["products"][0]["scenario_allocation"], 250.0
+        )
+        self.assertAlmostEqual(
+            result["products"][1]["scenario_allocation"], 750.0
+        )
+
+    def test_budget_allocation_respects_product_limits(self):
+        budget_data = self.create_budget_data()
+
+        with patch("main.Path.exists", return_value=True), \
+             patch("main.pd.read_csv", return_value=budget_data):
+            response = self.client.get(
+                "/api/budget-allocation",
+                params={"budget": 1000},
+            )
+
+        self.assertEqual(response.status_code, 200)
+
+        for product in response.json()["products"]:
+            allocation = product["scenario_allocation"]
+            self.assertGreaterEqual(allocation, 100)
+            self.assertLessEqual(allocation, 2000)
+
+    def test_budget_allocation_rejects_zero_budget(self):
+        response = self.client.get(
+            "/api/budget-allocation",
+            params={"budget": 0},
+        )
+
+        self.assertEqual(response.status_code, 422)
+
+    def test_budget_allocation_rejects_infeasible_budget(self):
+        budget_data = self.create_budget_data()
+
+        with patch("main.Path.exists", return_value=True), \
+             patch("main.pd.read_csv", return_value=budget_data):
+            response = self.client.get(
+                "/api/budget-allocation",
+                params={"budget": 199},
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Budget must be between", response.json()["detail"])
+
+    def test_budget_allocation_handles_missing_csv(self):
+        with patch("main.Path.exists", return_value=False):
+            response = self.client.get("/api/budget-allocation")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("CSV was not found", response.json()["detail"])
+
+    def test_budget_allocation_rejects_invalid_weights(self):
+        budget_data = self.create_budget_data()
+        budget_data["allocation_weight"] = [0, 0]
+
+        with patch("main.Path.exists", return_value=True), \
+             patch("main.pd.read_csv", return_value=budget_data):
+            response = self.client.get(
+                "/api/budget-allocation",
+                params={"budget": 1000},
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(
+            "Allocation weights",
+            response.json()["detail"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

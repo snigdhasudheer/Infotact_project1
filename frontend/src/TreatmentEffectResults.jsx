@@ -634,7 +634,8 @@ function TreatmentEffectResults({ results = null }) {
           </div>
         )}
       </div>
-            {/* Day 13: Exploratory Uplift Curve */}
+      
+      {/* Day 13: Exploratory Uplift Curve */}
       <section className="day11-section">
         <div className="day11-heading">
           <h3>Uplift Curve</h3>
@@ -642,8 +643,10 @@ function TreatmentEffectResults({ results = null }) {
         </div>
 
         <p className="dml-caption">
-          Compares cumulative conversion-rate differences between Mens E-Mail
+          Shows cumulative conversion-rate differences between Mens E-Mail
           and No E-Mail customers ranked by estimated CATE.
+          This is an exploratory in-sample analysis, not independent
+          out-of-sample uplift validation.
         </p>
 
         {validUpliftData && upliftPoints.length > 0 ? (
@@ -679,8 +682,10 @@ function TreatmentEffectResults({ results = null }) {
         </div>
 
         <p className="dml-caption">
-          Shows estimated incremental conversions from CATE-ranked targeting
-          compared with a random-targeting baseline.
+          Shows cumulative estimated incremental conversions for
+          CATE-ranked targeting against a random-targeting baseline.
+          This is an exploratory in-sample Qini curve; no validated
+          Qini coefficient or independent holdout evaluation is reported.
         </p>
 
         {validUpliftData && qiniPoints.length > 0 ? (
@@ -707,6 +712,8 @@ function TreatmentEffectResults({ results = null }) {
           <p className="chart-empty">Qini data is not available.</p>
         )}
       </section>
+
+
 
       {/* Individual Effect Uncertainty */}
 

@@ -1,4 +1,5 @@
-﻿import BudgetOptimization from "./BudgetOptimization";
+
+import BudgetOptimization from "./BudgetOptimization";
 import Recommendations from "./Recommendations";
 import CausalAssumptionsAudit from "./CausalAssumptionsAudit";
 import { DML_RESULTS } from "./SectionADmlResults";
@@ -198,7 +199,7 @@ function App() {
                 className="back-dashboard-button"
                 onClick={() => navigateToSection("dashboard")}
               >
-                â† Back to Dashboard
+                &larr; Back to Dashboard
               </button>
             )}
 
@@ -208,7 +209,7 @@ function App() {
               target="_blank"
               rel="noreferrer"
             >
-              Open GitHub â†—
+              Open GitHub &nearr;
             </a>
           </div>
         </header>
@@ -217,7 +218,7 @@ function App() {
         <section className="stats-grid" id="dashboard">
           <div className="stat-card">
             <div className="stat-card-top">
-              <span className="stat-icon blue">â–¤</span>
+              <span className="stat-icon blue">D</span>
               <span className="stat-tag">DATA</span>
             </div>
             <p>Dataset Overview</p>
@@ -227,7 +228,7 @@ function App() {
 
           <div className="stat-card">
             <div className="stat-card-top">
-              <span className="stat-icon purple">âŒ</span>
+              <span className="stat-icon purple">C</span>
               <span className="stat-tag">DML</span>
             </div>
             <p>Causal Analysis</p>
@@ -237,7 +238,7 @@ function App() {
 
           <div className="stat-card">
             <div className="stat-card-top">
-              <span className="stat-icon orange">â—ˆ</span>
+              <span className="stat-icon orange">₹</span>
               <span className="stat-tag">BUDGET</span>
             </div>
             <p>Budget Optimizer</p>
@@ -247,7 +248,7 @@ function App() {
 
           <div className="stat-card">
             <div className="stat-card-top">
-              <span className="stat-icon green">âŒ˜</span>
+              <span className="stat-icon green">G</span>
               <span className="stat-tag">GITHUB</span>
             </div>
             <p>GitHub Commits</p>
@@ -272,10 +273,10 @@ function App() {
               className="module-card"
               onClick={() => navigateToSection("dataset-eda")}
             >
-              <span className="module-icon blue">â–¤</span>
+              <span className="module-icon blue">D</span>
               <strong>Dataset & EDA</strong>
               <small>Upload, data quality, baseline metrics and charts.</small>
-              <span className="module-link">Explore module â†’</span>
+              <span className="module-link">Explore module &rarr;</span>
             </button>
 
             <button
@@ -283,10 +284,10 @@ function App() {
               className="module-card"
               onClick={() => navigateToSection("causal-analysis")}
             >
-              <span className="module-icon purple">âŒ</span>
+              <span className="module-icon purple">C</span>
               <strong>Causal Analysis</strong>
               <small>DML estimation and causal assumptions audit.</small>
-              <span className="module-link">Explore module â†’</span>
+              <span className="module-link">Explore module &rarr;</span>
             </button>
 
             <button
@@ -294,10 +295,10 @@ function App() {
               className="module-card"
               onClick={() => navigateToSection("treatment-effects")}
             >
-              <span className="module-icon green">âŒ</span>
+              <span className="module-icon green">T</span>
               <strong>Treatment Effects</strong>
               <small>ATE, CATE, uncertainty, uplift and Qini analysis.</small>
-              <span className="module-link">Explore module â†’</span>
+              <span className="module-link">Explore module &rarr;</span>
             </button>
 
             <button
@@ -305,10 +306,10 @@ function App() {
               className="module-card"
               onClick={() => navigateToSection("recommendations")}
             >
-              <span className="module-icon orange">âœ§</span>
+              <span className="module-icon orange">R</span>
               <strong>Recommendations</strong>
               <small>Business insights and analytical findings.</small>
-              <span className="module-link">Explore module â†’</span>
+              <span className="module-link">Explore module &rarr;</span>
             </button>
 
             <button
@@ -316,10 +317,10 @@ function App() {
               className="module-card"
               onClick={() => navigateToSection("budget-optimization")}
             >
-              <span className="module-icon teal">â—ˆ</span>
+              <span className="module-icon teal">B</span>
               <strong>Budget Optimization</strong>
               <small>Budget allocation and strategy analysis.</small>
-              <span className="module-link">Explore module â†’</span>
+              <span className="module-link">Explore module &rarr;</span>
             </button>
 
             <button
@@ -327,10 +328,10 @@ function App() {
               className="module-card"
               onClick={() => navigateToSection("team-activity")}
             >
-              <span className="module-icon pink">â™§</span>
+              <span className="module-icon pink">G</span>
               <strong>Team Activity</strong>
               <small>Project roadmap, GitHub commits and pull requests.</small>
-              <span className="module-link">Explore module â†’</span>
+              <span className="module-link">Explore module &rarr;</span>
             </button>
           </div>
         </section>
@@ -363,8 +364,8 @@ function App() {
                 DML results integrated into dashboard
               </li>
               <li>
-                <span className="task-status pending">Pending</span>
-                Budget optimization
+                <span className="task-status done">Available</span>
+                Historical-revenue-based budget allocation
               </li>
             </ul>
 
@@ -442,7 +443,7 @@ function App() {
               target="_blank"
               rel="noreferrer"
             >
-              View all main commits â†—
+              View all main commits &rarr;
             </a>
           </div>
         </section>
@@ -521,7 +522,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  View all open PRs â†—
+                  View all open PRs &rarr;
                 </a>
               </div>
 
@@ -567,7 +568,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  View all merged PRs â†—
+                  View all merged PRs &rarr;
                 </a>
               </div>
             </div>
@@ -597,7 +598,7 @@ function App() {
                 DML_RESULTS.ciUpper,
               ],
               sampleSize: DML_RESULTS.sampleSize,
-              modelStatus: "Estimated â€” LinearDML",
+              modelStatus: "Estimated - LinearDML",
               cateSummary: {
                 mean: DML_RESULTS.meanCate,
                 min: DML_RESULTS.minCate,
@@ -607,21 +608,20 @@ function App() {
             }}
           />
         </section>
+
         {/* Recommendations */}
-<section
-  className="panel detail-panel"
-  id="recommendations"
->
-  <Recommendations />
-</section>
+        <section
+          className="panel detail-panel"
+          id="recommendations"
+        >
+          <Recommendations />
+        </section>
 
-
-
-{/* Budget Optimization */}
-<BudgetOptimization />
+        {/* Budget Optimization */}
+        <BudgetOptimization />
 
         <footer className="dashboard-footer">
-          EconoCausal Â· GitHub-powered activity Â· Branch: main
+          EconoCausal &middot; GitHub-powered activity &middot; Branch: main
         </footer>
       </main>
     </div>
@@ -629,5 +629,3 @@ function App() {
 }
 
 export default App;
-
-
